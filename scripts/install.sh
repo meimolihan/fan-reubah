@@ -8,7 +8,7 @@
 #   交互式安装（将提示端口与应用目录）:
 #     bash scripts/install.sh
 #   参数静默安装（-p 端口 / -a 应用目录 / -b 二进制源）:
-#     bash scripts/install.sh -p 8081 -a /opt/fan-reubah -b ./bin/fan-reubah
+#     bash scripts/install.sh -p 8081 -a /var/lib/fan-reubah -b ./bin/fan-reubah
 #     bash scripts/install.sh -y
 
 set -euo pipefail
@@ -107,7 +107,7 @@ error() { printf "  %s %s\n" "${gl_hong}[错误]${reset}" "$1" >&2; exit 1; }
 # ================== customize me ==================
 APP_NAME="fan-reubah"
 DEFAULT_PORT=8081
-DEFAULT_APP_DIR="/opt/${APP_NAME}"
+DEFAULT_APP_DIR="/var/lib/${APP_NAME}"
 BIN_PATH="/usr/local/bin/${APP_NAME}"
 RECORD_FILE="/etc/${APP_NAME}.conf"
 SERVICE_FILE="/etc/systemd/system/${APP_NAME}.service"
@@ -145,6 +145,8 @@ INSTALL_YES=0
 case "$0" in
   -*) set -- "$0" "$@" ;;
 esac
+# `bash -c "$(...)" -- -p ...` 形式中 $0 为 "--"，丢弃以对齐 `bash -s --` 语义
+[ "${1:-}" = "--" ] && shift
 
 # ---- parse command-line args (silent install) ----
 while [ "$#" -gt 0 ]; do
