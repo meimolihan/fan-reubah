@@ -35,17 +35,10 @@ jobs:
       - name: Enable arm64 architecture and configure apt sources
         run: |
           sudo dpkg --add-architecture arm64
-          # GitHub runner 镜像源没有 arm64 索引。主源切到官方 amd64 archive；
-          # arm64 由 Ubuntu ports 源提供（非 x86 架构的索引只在 ports.ubuntu.com）。
-          if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
-            sudo sed -i -E 's#^URIs:.*#URIs: http://archive.ubuntu.com/ubuntu/#g' /etc/apt/sources.list.d/ubuntu.sources
-          fi
-          if [ -f /etc/apt/sources.list ]; then
-            sudo sed -i -E 's#(deb\s+https?://)[^/]+(/ubuntu/)#\1archive.ubuntu.com\2#g' /etc/apt/sources.list
-          fi
-          printf 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ noble main universe restricted multiverse\n' | sudo tee /etc/apt/sources.list.d/arm64.list >/dev/null
-          printf 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ noble-updates main universe restricted multiverse\n' | sudo tee -a /etc/apt/sources.list.d/arm64.list >/dev/null
-          printf 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ noble-security main universe restricted multiverse\n' | sudo tee -a /etc/apt/sources.list.d/arm64.list >/dev/null
+          # 重建 apt 源：amd64 用官方 archive.ubuntu.com，arm64 用 ports.ubuntu.com
+          # （GitHub runner 预置镜像源无 arm64 索引，会导致 apt-get update 404 失败）。
+          sudo cp .github/apt/fan-reubah.sources /etc/apt/sources.list.d/fan-reubah.sources
+          sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources
           sudo apt-get update
 
       - name: Install build dependencies (native + arm64 cross)
