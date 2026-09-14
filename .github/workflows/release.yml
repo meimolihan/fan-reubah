@@ -32,17 +32,20 @@ jobs:
           cache: npm
           cache-dependency-path: templates/package-lock.json
 
-      - name: Enable arm64 architecture and fix apt sources
+      - name: Enable arm64 architecture and configure apt sources
         run: |
           sudo dpkg --add-architecture arm64
-          # GitHub runner 镜像源（azure.archive/security.ubuntu.com）对 arm64 索引返回 404，
-          # 统一切换为官方源 archive.ubuntu.com（arm64 索引齐全）。
+          # GitHub runner 镜像源没有 arm64 索引。主源切到官方 amd64 archive；
+          # arm64 由 Ubuntu ports 源提供（非 x86 架构的索引只在 ports.ubuntu.com）。
           if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
             sudo sed -i -E 's#^URIs:.*#URIs: http://archive.ubuntu.com/ubuntu/#g' /etc/apt/sources.list.d/ubuntu.sources
           fi
           if [ -f /etc/apt/sources.list ]; then
-            sudo sed -i -E 's#(deb\s+https?://)[^/]+(/ubuntu/)#\1archive.ubuntu.com\2#g; s#^deb #deb [arch=amd64,arm64] #g' /etc/apt/sources.list
+            sudo sed -i -E 's#(deb\s+https?://)[^/]+(/ubuntu/)#\1archive.ubuntu.com\2#g' /etc/apt/sources.list
           fi
+          printf 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ noble main universe restricted multiverse\n' | sudo tee /etc/apt/sources.list.d/arm64.list >/dev/null
+          printf 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ noble-updates main universe restricted multiverse\n' | sudo tee -a /etc/apt/sources.list.d/arm64.list >/dev/null
+          printf 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ noble-security main universe restricted multiverse\n' | sudo tee -a /etc/apt/sources.list.d/arm64.list >/dev/null
           sudo apt-get update
 
       - name: Install build dependencies (native + arm64 cross)
