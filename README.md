@@ -20,11 +20,29 @@ git clone https://github.com/meimolihan/fan-reubah.git
 cd fan-reubah
 bash scripts/install.sh -y -p 8081
 ```
-或远程一键安装（自动从 GitHub Release 下载二进制）：
+或远程一键安装（自动从 GitHub Release 下载二进制与前端资产）：
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/install.sh)" -- -p 8081
+curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/install.sh | bash -s -- -p 8081
 ```
 访问地址：`http://<服务器IP>:8081`
+
+#### 安装目录说明
+默认应用目录为 `/var/lib/fan-reubah`（前端模板/静态资源部署于此，二进制固定安装在 `/usr/local/bin/fan-reubah`）。
+
+- **交互式**（未指定 `-a` 且非 `-y` 时，会提示输入应用目录，直接回车使用默认值）：
+```bash
+bash scripts/install.sh -p 8081
+```
+- **免交互指定目录**（其余未指定项使用默认值）：
+```bash
+bash scripts/install.sh -p 8081 -a /var/lib/fan-reubah -y
+```
+- **远程管道免交互指定目录**：
+```bash
+curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/install.sh | bash -s -- -p 8081 -a /var/lib/fan-reubah
+```
+
+安装记录写入 `/etc/fan-reubah.conf`，重装/升级会自动沿用上次的端口与应用目录。
 
 常用 systemctl 命令：
 ```bash

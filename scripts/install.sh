@@ -345,11 +345,17 @@ PORT="${PORT:-$DEFAULT_PORT}"
 
 # app dir prompt
 if [ -z "${APP_DIR}" ]; then
-  if [ "$INSTALL_YES" = "1" ] || [ ! -t 0 ]; then
+  if [ "$INSTALL_YES" = "1" ]; then
     APP_DIR="${DEFAULT_APP_DIR}"
-  else
+  elif [ -t 0 ]; then
     read -r -p "${gl_bai}请输入应用部署目录${reset} ${gl_hui}[默认: ${DEFAULT_APP_DIR}]${reset}: " APP_DIR
     APP_DIR="${APP_DIR:-$DEFAULT_APP_DIR}"
+  elif [ -e /dev/tty ]; then
+    # curl|bash 管道注入脚本时 stdin 非 TTY，改从 /dev/tty 读取，回车用默认
+    read -r -p "${gl_bai}请输入应用部署目录${reset} ${gl_hui}[默认: ${DEFAULT_APP_DIR}]${reset}: " APP_DIR < /dev/tty || APP_DIR=""
+    APP_DIR="${APP_DIR:-$DEFAULT_APP_DIR}"
+  else
+    APP_DIR="${DEFAULT_APP_DIR}"
   fi
 else
   printf "  %-14s %s\n" "${gl_lan}应用目录${reset}" "${gl_bai}${APP_DIR}${reset}（参数指定）"
