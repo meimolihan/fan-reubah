@@ -34,6 +34,7 @@ jobs:
 
       - name: Install build dependencies (native + arm64 cross)
         run: |
+          sudo dpkg --add-architecture arm64
           sudo apt-get update
           sudo apt-get install -y \
             gcc g++ pkg-config \
