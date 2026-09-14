@@ -41,9 +41,7 @@ jobs:
             sudo sed -i -E 's#^URIs:.*#URIs: http://archive.ubuntu.com/ubuntu/#g' /etc/apt/sources.list.d/ubuntu.sources
           fi
           if [ -f /etc/apt/sources.list ]; then
-            sudo sed -i \
-              -E 's#(deb\s+https?://)[^/]+(/ubuntu/)#\1archive.ubuntu.com\2#g' \
-              -E 's#^deb #deb [arch=amd64,arm64] #g' /etc/apt/sources.list
+            sudo sed -i -E 's#(deb\s+https?://)[^/]+(/ubuntu/)#\1archive.ubuntu.com\2#g; s#^deb #deb [arch=amd64,arm64] #g' /etc/apt/sources.list
           fi
           sudo apt-get update
 
