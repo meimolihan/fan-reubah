@@ -112,21 +112,29 @@ BIN_PATH="/usr/local/bin/${APP_NAME}"
 RECORD_FILE="/etc/${APP_NAME}.conf"
 SERVICE_FILE="/etc/systemd/system/${APP_NAME}.service"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)"
-DEFAULT_BIN_SRC="${SCRIPT_DIR}/../bin/${APP_NAME}"
 
-# 经 curl|bash 远程执行时，SCRIPT_DIR 指向 bash 抽取的临时目录，本地构建产物
-# 需按常见目录回退探测（当前目录 / 上一级目录），否则会误判"无本地产物"。
+# 远程 curl|bash 执行时 BASH_SOURCE[0] 为空，SCRIPT_DIR 退化引用为当前目录；
+# 若恰在仓库内运行，据此定位仓库根，使二进制/前端产物走本地而非远端下载。
+REPO_ROOT=""
+for _c in "${SCRIPT_DIR}/.." "$(pwd)" "$(dirname "$(pwd)")"; do
+  if [ -d "${_c}/templates" ] && [ -d "${_c}/static" ] && [ -f "${_c}/templates/package.json" ]; then
+    REPO_ROOT="${_c}"
+    break
+  fi
+done
+
+DEFAULT_BIN_SRC="${REPO_ROOT:-${SCRIPT_DIR}/..}/bin/${APP_NAME}"
+
+# 经 curl|bash 远程执行且不在仓库内时 REPO_ROOT 为空，本地构建产物无法定位，
+# 直接跳转远端 Release 下载（二进制 + 前端资产包），不再误判目录为本地产物。
 resolve_local_src() {
   local candidates=(
+    "${REPO_ROOT:-}/$1"
     "${SCRIPT_DIR:-}/../$1"
-    "${SCRIPT_DIR:-}/../${APP_NAME}"
     "$(pwd)/$1"
-    "$(pwd)/${APP_NAME}"
-    "$(pwd)/../$1"
-    "$(dirname "$(pwd)")/$1"
   )
   for c in "${candidates[@]}"; do
-    if [ -e "${c}" ]; then
+    if [ -f "${c}" ]; then
       printf '%s' "${c}"
       return 0
     fi
@@ -134,6 +142,8 @@ resolve_local_src() {
   return 1
 }
 # ==================================================
+
+FRONTEND_SRC="${REPO_ROOT:-}"
 
 PORT=""
 APP_DIR=""
@@ -244,19 +254,36 @@ open_firewall_port() {
   printf "  %s %s\n" "${gl_huang}[提示]${reset}" "未检测到活跃的防火墙（firewalld/ufw/iptables），跳过端口开放。"
 }
 
+ASSETS_TGZ_URL="https://github.com/meimolihan/fan-reubah/releases/latest/download/fan-reubah-assets.tar.gz"
+
+download_frontend_assets() {
+  local tmp
+  tmp="$(mktemp -d)"
+  ok "本地无前端产物，从 GitHub Release 下载前端资产..."
+  curl -fsSL "${ASSETS_TGZ_URL}" -o "${tmp}/assets.tar.gz" \
+    || error "前端资产包下载失败（${ASSETS_TGZ_URL}），请先用 scripts/build-and-push.sh 完整发布"
+  tar -xzf "${tmp}/assets.tar.gz" -C "${tmp}" \
+    || error "前端资产包解压失败"
+  [ -d "${tmp}/templates" ] && [ -d "${tmp}/static" ] \
+    || error "前端资产包缺少 templates/static 目录"
+  FRONTEND_SRC="${tmp}"
+}
+
 ensure_frontend() {
-  # 前端编译产物（static/css 与 static/js）缺失时，若仓库内存在模板源码则尝试构建
+  # 前端编译产物（static/css 与 static/js）缺失时：
+  #   仓库内 -> 用 npm 构建；远程 -> 从 Release 下载资产包
   local missing=0
-  [ -d "${SCRIPT_DIR}/../static/css" ] || missing=1
-  [ -d "${SCRIPT_DIR}/../static/js" ] || missing=1
+  [ -d "${FRONTEND_SRC}/static/css" ] || missing=1
+  [ -d "${FRONTEND_SRC}/static/js" ] || missing=1
 
   if [ "${missing}" = "1" ]; then
-    if [ -f "${SCRIPT_DIR}/../templates/package.json" ] && command -v npm >/dev/null 2>&1; then
+    if [ -n "${FRONTEND_SRC:-}" ] && [ -f "${FRONTEND_SRC}/templates/package.json" ] && command -v npm >/dev/null 2>&1; then
       ok "检测到前端编译产物缺失，尝试构建前端..."
-      (cd "${SCRIPT_DIR}/../templates" && npm ci --no-audit --no-fund >/dev/null 2>&1 || npm install --no-audit --no-fund >/dev/null 2>&1) && npm run build >/dev/null
-      [ -d "${SCRIPT_DIR}/../static/css" ] && [ -d "${SCRIPT_DIR}/../static/js" ] || error "前端构建失败，请先运行 scripts/build-and-push.sh 或在安装前完成构建"
+      (cd "${FRONTEND_SRC}/templates" && { npm ci --no-audit --no-fund >/dev/null 2>&1 || npm install --no-audit --no-fund >/dev/null 2>&1; } && npm run build >/dev/null)
+      { [ -d "${FRONTEND_SRC}/static/css" ] && [ -d "${FRONTEND_SRC}/static/js" ]; } \
+        || error "前端构建失败，请先运行 scripts/build-and-push.sh 或在安装前完成构建"
     else
-      error "前端编译产物缺失，请先运行 scripts/build-and-push.sh（或 bash scripts/install.sh 所在服务器的 npm 环境构建）"
+      download_frontend_assets
     fi
   fi
 }
@@ -391,6 +418,8 @@ deploy_vtracer() {
 }
 VTRACER_SRC=""
 for c in \
+  "${REPO_ROOT:-}/vtracer/target/release/vtracer" \
+  "${REPO_ROOT:-}/bin/vtracer" \
   "${SCRIPT_DIR}/../vtracer/target/release/vtracer" \
   "$(pwd)/vtracer/target/release/vtracer" \
   "${SCRIPT_DIR}/../bin/vtracer"; do
@@ -398,10 +427,10 @@ for c in \
 done
 if [ -n "${VTRACER_SRC}" ]; then
   deploy_vtracer "${VTRACER_SRC}"
-elif [ -d "${SCRIPT_DIR}/../vtracer" ] && command -v cargo >/dev/null 2>&1; then
+elif [ -n "${REPO_ROOT:-}" ] && [ -d "${REPO_ROOT}/vtracer" ] && command -v cargo >/dev/null 2>&1; then
   printf "  %s\n" "${gl_huang}[提示]${reset} 未找到预编译 vtracer，尝试用 cargo 编译（可能需要几分钟）..."
-  if (cd "${SCRIPT_DIR}/../vtracer" && cargo build --release -p vtracer-cli >/dev/null 2>&1); then
-    deploy_vtracer "${SCRIPT_DIR}/../vtracer/target/release/vtracer"
+  if (cd "${REPO_ROOT}/vtracer" && cargo build --release -p vtracer-cli >/dev/null 2>&1); then
+    deploy_vtracer "${REPO_ROOT}/vtracer/target/release/vtracer"
   else
     printf "  %s\n" "${gl_huang}[提示]${reset} vtracer 编译失败，SVG 矢量转换功能不可用（不影响其他功能）"
   fi
@@ -412,12 +441,12 @@ fi
 
 ok "正在部署应用目录 ${gl_lan}${APP_DIR}${reset}"
 mkdir -p "${APP_DIR}"
-if [ -d "${SCRIPT_DIR}/../templates" ]; then
-  cp -rf "${SCRIPT_DIR}/../templates" "${APP_DIR}/"
+if [ -n "${FRONTEND_SRC:-}" ] && [ -d "${FRONTEND_SRC}/templates" ]; then
+  cp -rf "${FRONTEND_SRC}/templates" "${APP_DIR}/"
   rm -rf "${APP_DIR}/templates/node_modules"
 fi
-if [ -d "${SCRIPT_DIR}/../static" ]; then
-  cp -rf "${SCRIPT_DIR}/../static" "${APP_DIR}/"
+if [ -n "${FRONTEND_SRC:-}" ] && [ -d "${FRONTEND_SRC}/static" ]; then
+  cp -rf "${FRONTEND_SRC}/static" "${APP_DIR}/"
 fi
 chmod -R a+rX "${APP_DIR}"
 

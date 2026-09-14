@@ -96,6 +96,12 @@ cp ./bin/fan-reubah "./bin/fan-reubah_linux_${REL_ARCH}"
 file ./bin/fan-reubah
 ls -lh ./bin/fan-reubah
 
+info "打包前端资产 bin/fan-reubah-assets.tar.gz（templates + static）"
+tar -czf ./bin/fan-reubah-assets.tar.gz \
+    --exclude='templates/node_modules' \
+    templates static
+ls -lh ./bin/fan-reubah-assets.tar.gz
+
 # ===================== Git 提交 & Tag =====================
 info "提交版本变更"
 git add templates/package.json templates/package-lock.json
@@ -117,7 +123,9 @@ if command -v gh >/dev/null 2>&1; then
 
     if [[ "${ans}" =~ ^[yY]$ ]]; then
         info "新建 Release ${TAG}"
-        gh release create "${TAG}" "./bin/fan-reubah_linux_${REL_ARCH}" \
+        gh release create "${TAG}" \
+            "./bin/fan-reubah_linux_${REL_ARCH}" \
+            "./bin/fan-reubah-assets.tar.gz" \
             -R "${GH_REPO}" \
             --title "Release ${TAG}" \
             --generate-notes
