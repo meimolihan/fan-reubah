@@ -24,7 +24,7 @@ RUN rm -rf node_modules package.json package-lock.json \
 # ============================================================
 # Stage 2: VTracer（Rust）矢量化引擎编译
 # ============================================================
-FROM rust:1.85-alpine AS vtracer
+FROM rust:1-alpine AS vtracer
 
 WORKDIR /vtracer
 
