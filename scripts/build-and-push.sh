@@ -26,6 +26,12 @@ done
 cd "$(dirname "$0")/.."
 TARGET_VER="${TAG#v}"
 
+GH_REPO=""
+REMOTE_URL=$(git remote get-url origin 2>/dev/null || true)
+if [[ "${REMOTE_URL}" == *github.com* ]]; then
+    GH_REPO=$(echo "${REMOTE_URL}" | sed -E 's#.*github\.com[:/]([^/]+/[^/.]+)(\.git)?$#\1#')
+fi
+
 command -v go >/dev/null 2>&1 || error "未找到 go，请先安装并加入 PATH（如 export PATH=\$PATH:/usr/local/go/bin）"
 command -v npm >/dev/null 2>&1 || error "未找到 npm/node，请先安装 Node.js"
 command -v gcc >/dev/null 2>&1 || error "未找到 gcc，fan-reubah 依赖 cgo（libwebp/libheif）"
@@ -35,9 +41,9 @@ pkg-config --exists libheif 2>/dev/null || warn "缺少 libheif 开发库，编�
 
 # ===================== 重复Tag/Release自动清理 =====================
 info "检查远端是否存在 Release ${TAG}"
-if gh release view "${TAG}" >/dev/null 2>&1; then
+if gh release view "${TAG}" ${GH_REPO:+-R "$GH_REPO"} >/dev/null 2>&1; then
     warn "发现已存在Release ${TAG}，准备删除Release并清理tag"
-    gh release delete "${TAG}" -y --cleanup-tag
+    gh release delete "${TAG}" -y --cleanup-tag ${GH_REPO:+-R "$GH_REPO"}
 fi
 
 info "清理本地&远端Git tag: ${TAG}"
@@ -112,6 +118,7 @@ if command -v gh >/dev/null 2>&1; then
     if [[ "${ans}" =~ ^[yY]$ ]]; then
         info "新建 Release ${TAG}"
         gh release create "${TAG}" "./bin/fan-reubah_linux_${REL_ARCH}" \
+            -R "${GH_REPO}" \
             --title "Release ${TAG}" \
             --generate-notes
         info "✅ GitHub Release 处理完成"
