@@ -54,11 +54,28 @@ journalctl -u fan-reubah -f        # 跟随日志
 journalctl -u fan-reubah -n 50     # 最近日志
 ```
 
-卸载：
+### 卸载
+停止并移除 systemd 服务、二进制（含 SVG 转换引擎 vtracer）、应用目录与安装记录，并撤销安装时开放的防火墙端口。
+
 ```bash
-bash scripts/uninstall.sh -y            # 免确认卸载（保留应用目录）
-bash scripts/uninstall.sh -y --purge    # 免确认卸载并删除应用目录
+bash scripts/uninstall.sh                  # 交互确认卸载（默认保留应用目录）
+bash scripts/uninstall.sh -y               # 免确认卸载（保留应用目录）
+bash scripts/uninstall.sh -y --purge       # 免确认卸载并删除应用目录
 ```
+
+或远程一键卸载（无需克隆仓库，以 root 运行）：
+```bash
+curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/uninstall.sh | sudo bash -s -- -y --purge
+```
+
+| 参数 | 说明 |
+| --- | --- |
+| `-y` / `--yes` | 免确认，自动同意卸载 |
+| `--purge` / `--delete-appdir` | 卸载时同时删除应用目录（模板与静态资源） |
+| `--keep-appdir` | 保留应用目录（非交互模式下默认即保留） |
+| `-q` / `--quiet` | 静默模式，仅输出关键信息 |
+
+脚本会自动按 `/proc` 终止残留的 fan-reubah 进程，并关闭 install.sh 开放过的防火墙端口（firewalld/ufw/iptables）。
 
 ### Using Docker
 ```bash
