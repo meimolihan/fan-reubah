@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reubah</title>
+    <link rel="icon" type="image/png" href="/static/assets/favicon.png">
+    <link rel="apple-touch-icon" href="/static/assets/favicon.png">
+    <title>Fan-Reubah</title>
     <link href="/static/css/styles.css" rel="stylesheet">
+    <script src="/static/js/i18n.js" defer></script>
     <script src="/static/js/main.js" defer></script>
 </head>
-<body class="transition-colors duration-200" x-data="{ activeTab: 'image', processingMode: 'individual', darkMode: localStorage.getItem('darkMode') === 'true' }" 
+<body class="transition-colors duration-200" 
+    x-data="{ activeTab: 'image', processingMode: 'individual', svgPreset: '', lang: window.I18n.getLang(), darkMode: localStorage.getItem('darkMode') === 'true', t(key, params) { return window.I18n.tLang(this.lang, key, params); }, setLang() { window.I18n.setLang(this.lang); document.documentElement.lang = this.lang === 'zh' ? 'zh-CN' : 'en'; } }" 
     :class="{ 'dark bg-darkBg text-gray-100': darkMode, 'bg-[#FFFFFF] text-gray-900': !darkMode }">
     {{ template "nav" . }}
 
@@ -40,6 +44,14 @@
                          class="space-y-6">
                         {{ template "page-batch" . }}
                     </div>
+
+                    <div x-show="activeTab === 'svg'" 
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 transform scale-95"
+                         x-transition:enter-end="opacity-100 transform scale-100"
+                         class="space-y-6">
+                        {{ template "page-svg" . }}
+                    </div>
                 </div>
             </div>
 
@@ -51,5 +63,6 @@
     <script src="/static/js/formHandler.js"></script>
     <script src="/static/js/batchHandler.js"></script>
     <script src="/static/js/documentHandler.js"></script>
+    <script src="/static/js/svgHandler.js"></script>
 </body>
 </html> 

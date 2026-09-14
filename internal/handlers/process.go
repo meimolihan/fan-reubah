@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/dendianugerah/reubah/internal/processor"
-	"github.com/dendianugerah/reubah/internal/processor/resize"
-	"github.com/dendianugerah/reubah/internal/validator"
-	"github.com/dendianugerah/reubah/pkg/errors"
-	"github.com/dendianugerah/reubah/internal/constants"
+	"github.com/meimolihan/fan-reubah/internal/processor"
+	"github.com/meimolihan/fan-reubah/internal/processor/resize"
+	"github.com/meimolihan/fan-reubah/internal/validator"
+	"github.com/meimolihan/fan-reubah/pkg/errors"
+	"github.com/meimolihan/fan-reubah/internal/constants"
 )
 
 func ProcessImage(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +35,7 @@ func ProcessImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendResponse(w, processedImage, opts.OutputFormat)
+	sendResponse(w, processedImage, processedImage.Format)
 }
 
 func parseRequest(r *http.Request) (processor.ProcessOptions, image.Image, error) {

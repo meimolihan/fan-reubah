@@ -1,37 +1,48 @@
 {{ define "tabs" }}
  <div class="border-b transition-colors duration-200" :class="{ 'border-gray-700 bg-darkSurface': darkMode, 'border-gray-200 bg-gray-50/50': !darkMode }">
-      <nav class="flex -mb-px mx-auto" aria-label="Tabs">
+      <nav class="flex -mb-px mx-auto" :aria-label="t('tabsLabel')">
         <!-- Image Processing -->
         <button @click="activeTab = 'image'" 
                 :class="{'border-indigo-500 text-indigo-600': activeTab === 'image',
                         'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-500': activeTab !== 'image'}"
-                class="w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors duration-200 flex flex-col items-center space-y-1">
+                class="w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors duration-200 flex flex-col items-center space-y-1">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <span>Image Processing</span>
+          <span x-text="t('tab.image')">Image Processing</span>
         </button>
 
         <!-- Document Processing -->
         <button @click="activeTab = 'document'"
                 :class="{'border-indigo-500 text-indigo-600': activeTab === 'document',
                         'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-500': activeTab !== 'document'}"
-                class="w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors duration-200 flex flex-col items-center space-y-1">
+                class="w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors duration-200 flex flex-col items-center space-y-1">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <span>Document Processing</span>
+          <span x-text="t('tab.document')">Document Processing</span>
         </button>
 
         <!-- Batch Processing -->
         <button @click="activeTab = 'batch'"
                 :class="{'border-indigo-500 text-indigo-600': activeTab === 'batch',
                         'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-500': activeTab !== 'batch'}"
-                class="w-1/3 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors duration-200 flex flex-col items-center space-y-1">
+                class="w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors duration-200 flex flex-col items-center space-y-1">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
-          <span>Batch Processing</span>
+          <span x-text="t('tab.batch')">Batch Processing</span>
+        </button>
+
+        <!-- SVG Conversion -->
+        <button @click="activeTab = 'svg'"
+                :class="{'border-indigo-500 text-indigo-600': activeTab === 'svg',
+                        'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-500': activeTab !== 'svg'}"
+                class="w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors duration-200 flex flex-col items-center space-y-1">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 1024 1024">
+            <path d="M192.512 384h640c11.264 0 22.528 4.096 29.696 12.288 8.192 8.192 12.288 18.432 12.288 29.696V788.48c0 23.552-19.456 43.008-43.008 43.008H192.512v106.496c0 6.144 2.048 11.264 6.144 15.36 4.096 4.096 9.216 6.144 15.36 6.144h724.992c12.288 0 21.504-9.216 21.504-21.504V309.248l-10.24-10.24H823.296c-54.272 0-98.304-44.032-98.304-98.304V72.704l-8.192-9.216H212.992c-6.144 0-11.264 2.048-15.36 6.144-4.096 4.096-6.144 9.216-6.144 15.36v299.008z m-64.512 447.488H43.008C19.456 831.488 0 812.032 0 788.48V427.008c0-11.264 4.096-22.528 12.288-29.696 8.192-8.192 18.432-12.288 29.696-12.288h84.992V84.992c0-47.104 37.888-84.992 84.992-84.992h530.432L1024 282.624v656.384c0 47.104-37.888 84.992-84.992 84.992H212.992c-47.104 0-84.992-37.888-84.992-84.992V831.488z m61.44-364.544c-27.648 0-50.176 6.144-67.584 20.48-19.456 14.336-28.672 32.768-28.672 57.344s9.216 43.008 29.696 55.296c7.168 5.12 26.624 12.288 58.368 22.528 27.648 9.216 44.032 15.36 49.152 18.432 15.36 8.192 23.552 20.48 23.552 34.816 0 11.264-6.144 20.48-16.384 27.648-10.24 6.144-25.6 10.24-44.032 10.24-21.504 0-36.864-4.096-46.08-12.288-11.264-9.216-17.408-23.552-20.48-44.032h-40.96c2.048 34.816 13.312 60.416 34.816 76.8 17.408 13.312 41.984 19.456 73.728 19.456 32.768 0 57.344-7.168 75.776-21.504 17.408-14.336 26.624-33.792 26.624-58.368 0-25.6-11.264-45.056-32.768-59.392-10.24-6.144-31.744-15.36-66.56-26.624-23.552-8.192-37.888-14.336-43.008-17.408-12.288-7.168-17.408-16.384-17.408-27.648 0-13.312 5.12-22.528 15.36-28.672 8.192-5.12 20.48-7.168 36.864-7.168 18.432 0 32.768 3.072 41.984 11.264 9.216 7.168 16.384 19.456 19.456 36.864h40.96c-2.048-29.696-13.312-52.224-30.72-66.56-18.432-14.336-41.984-21.504-71.68-21.504z m118.784 5.12L399.36 746.496h50.176l90.112-274.432h-45.056L424.96 696.32h-1.024l-69.632-223.232h-46.08v-1.024z m368.64-5.12c-37.888 0-67.584 14.336-90.112 41.984-21.504 26.624-31.744 60.416-31.744 101.376s10.24 73.728 31.744 100.352c22.528 27.648 54.272 40.96 94.208 40.96 22.528 0 43.008-3.072 61.44-9.216 17.408-6.144 32.768-14.336 46.08-25.6V601.088H679.936v38.912H747.52V696.32c-8.192 5.12-17.408 9.216-27.648 12.288-11.264 3.072-22.528 5.12-33.792 5.12-30.72 0-54.272-9.216-68.608-27.648-13.312-17.408-20.48-41.984-20.48-74.752 0-33.792 7.168-59.392 22.528-77.824 14.336-17.408 32.768-25.6 56.32-25.6 19.456 0 34.816 4.096 47.104 13.312 11.264 9.216 19.456 21.504 22.528 39.936H788.48c-5.12-30.72-16.384-53.248-33.792-68.608-19.456-17.408-45.056-25.6-77.824-25.6z" fill="currentColor" />
+          </svg>
+          <span x-text="t('tab.svg')">SVG Converter</span>
         </button>
       </nav>
     </div>

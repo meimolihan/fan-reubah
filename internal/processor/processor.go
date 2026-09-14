@@ -4,24 +4,24 @@ import (
 	"bytes"
 	"fmt"
 	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 	"image/gif"
+	_ "image/gif"
 	"image/jpeg"
+	_ "image/jpeg"
 	"image/png"
+	_ "image/png"
 	"io"
 	"math"
 	"os"
 	"path/filepath"
 
+	"github.com/MaestroError/go-libheif"
 	"github.com/chai2010/webp"
-	"github.com/dendianugerah/reubah/internal/processor/background"
-	"github.com/dendianugerah/reubah/internal/processor/optimize"
-	"github.com/dendianugerah/reubah/internal/processor/resize"
 	"github.com/disintegration/imaging"
 	"github.com/jung-kurt/gofpdf"
-	"github.com/MaestroError/go-libheif"
+	"github.com/meimolihan/fan-reubah/internal/processor/background"
+	"github.com/meimolihan/fan-reubah/internal/processor/optimize"
+	"github.com/meimolihan/fan-reubah/internal/processor/resize"
 	"golang.org/x/image/bmp"
 )
 
@@ -105,6 +105,11 @@ func (p *ImageProcessor) ProcessImageData(img image.Image, opts ProcessOptions) 
 	if opts.OutputFormat == "" {
 		opts.OutputFormat = p.config.DefaultFormat
 	}
+	// Removing the background produces transparency, which JPEG/BMP/GIF would
+	// flatten away; route those through PNG instead.
+	if opts.RemoveBackground && !supportsAlpha(opts.OutputFormat) {
+		opts.OutputFormat = "png"
+	}
 	if !isValidFormat(opts.OutputFormat) {
 		return nil, fmt.Errorf("unsupported format: %s", opts.OutputFormat)
 	}
@@ -133,7 +138,7 @@ func (p *ImageProcessor) ProcessImageData(img image.Image, opts ProcessOptions) 
 
 	// Add optimization step
 	if opts.OptimizeImage {
-		optimizeOpts := optimize.GetOptionsForQuality(opts.OutputFormat, 
+		optimizeOpts := optimize.GetOptionsForQuality(opts.OutputFormat,
 			optimize.QualityLevel(getQualityLevel(opts.Quality)))
 		var buf bytes.Buffer
 		if err := optimize.Optimize(&buf, img, opts.OutputFormat, optimizeOpts); err != nil {
@@ -179,6 +184,8 @@ func (pi *ProcessedImage) Write(w io.Writer) error {
 		})
 	case "bmp":
 		return bmp.Encode(w, pi.Image)
+	case "ico":
+		return encodeICO(w, pi.Image, pi.Quality)
 	case "heic", "heif":
 		return encodeHEIC(w, pi.Image, pi.Quality)
 	case "pdf":
@@ -196,11 +203,22 @@ func isValidFormat(format string) bool {
 		"webp": true,
 		"gif":  true,
 		"bmp":  true,
+		"ico":  true,
 		"heic": true,
 		"heif": true,
 		"pdf":  true,
 	}
 	return validFormats[format]
+}
+
+// supportsAlpha reports whether an output format preserves an alpha channel.
+func supportsAlpha(format string) bool {
+	switch format {
+	case "png", "webp", "ico", "heic", "heif":
+		return true
+	default:
+		return false
+	}
 }
 
 func getQualityLevel(quality int) string {

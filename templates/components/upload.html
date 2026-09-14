@@ -1,7 +1,7 @@
 {{ define "upload" }}
 <div class="space-y-4">
     <div class="relative">
-        <input id="imageInput" name="image" type="file" accept="image/*,.heic,.heif" required class="sr-only">        
+        <input id="imageInput" name="image" type="file" accept="image/*,.heic,.heif,.icns" required class="sr-only">        
         <label class="block">
             <div id="uploadArea" 
                  class="mt-1 flex justify-center px-6 pt-8 pb-8 border-2 border-dashed rounded-lg transition-all duration-200 group"
@@ -19,21 +19,21 @@
                          :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-600': !darkMode }">
                         <label for="imageInput" class="relative cursor-pointer rounded-md font-medium"
                                :class="{ 'text-darkAccent hover:text-darkAccentHover': darkMode, 'text-accent-light hover:text-accent-darker': !darkMode }">
-                            <span class="inline-flex items-center px-4 py-2 border text-sm rounded-full transition-colors"
-                                  :class="{ 'border-darkAccent hover:bg-darkAccent/10': darkMode, 'border-accent-light hover:bg-accent-light/10': !darkMode }">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                </svg>
-                                Choose a file
-                            </span>
-                        </label>
-                        <p :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }">
+<span class="inline-flex items-center px-4 py-2 border text-sm rounded-full transition-colors"
+                                      :class="{ 'border-darkAccent hover:bg-darkAccent/10': darkMode, 'border-accent-light hover:bg-accent-light/10': !darkMode }">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <span x-text="t('chooseFile')">Choose a file</span>
+                                </span>
+                            </label>
+                        <p :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('dragDropImage')">
                             or drag and drop your image here
                         </p>
                     </div>
                     <div class="text-xs mt-2"
                          :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }">
-                        <p>Maximum file size: 32MB</p>
+                        <p x-text="t('maxFileSize')">Maximum file size: 32MB</p>
                     </div>
                 </div>
             </div>
@@ -52,7 +52,7 @@
     <div id="preview" class="hidden">
         <div class="relative p-4 rounded-lg border"
              :class="{ 'bg-darkSurface border-darkBorder': darkMode, 'bg-gray-50 border-gray-200': !darkMode }">
-            <img class="max-h-64 mx-auto rounded-lg shadow-md" alt="Preview">
+            <img class="max-h-64 mx-auto rounded-lg shadow-md" :alt="t('previewAlt')" alt="Preview">
             <div class="absolute top-2 right-2 px-3 py-1 rounded-full text-sm font-medium"
                  :class="{ 'bg-black/50 text-darkTextPrimary': darkMode, 'bg-gray-900/50 text-gray-100': !darkMode }">
             </div>
@@ -60,7 +60,7 @@
                     class="absolute top-2 left-2 p-2 rounded-full text-sm transition-colors cursor-pointer text-white"
                     :class="{ 'bg-error-dark/80 hover:bg-error-dark': darkMode, 'bg-error-light/80 hover:bg-error-light': !darkMode }"
                     id="removePreview" 
-                    aria-label="Remove image">
+                    :aria-label="t('removeImage')" aria-label="Remove image">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>

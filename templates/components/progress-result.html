@@ -8,7 +8,7 @@
                           :class="{ 
                               'text-darkAccent bg-darkAccent/10': darkMode,
                               'text-indigo-600 bg-indigo-200': !darkMode 
-                          }">
+                          }" x-text="t('processing')">
                         Processing
                     </span>
                 </div>
@@ -20,7 +20,7 @@
                 </div>
             </div>
             <p class="text-sm text-center transition-colors"
-               :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-600': !darkMode }">
+               :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-600': !darkMode }" x-text="t('processingYourImage')">
                 Processing your image...
             </p>
         </div>
@@ -34,7 +34,7 @@
                  'border-b border-gray-200 bg-gray-50': !darkMode 
              }">
             <h3 class="text-lg leading-6 font-medium transition-colors"
-                :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-900': !darkMode }">
+                :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-900': !darkMode }" x-text="t('processedImage')">
                 Processed Image
             </h3>
         </div>
@@ -48,7 +48,7 @@
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <p class="transition-colors" 
-                           :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }">
+                           :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('originalSize')">
                             Original Size
                         </p>
                         <p class="font-medium transition-colors original-size"
@@ -57,7 +57,7 @@
                     </div>
                     <div>
                         <p class="transition-colors"
-                           :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }">
+                           :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('processedSize')">
                             Processed Size
                         </p>
                         <p class="font-medium transition-colors new-size"
@@ -75,7 +75,7 @@
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
-                        Download Image
+                        <span x-text="t('downloadImage')">Download Image</span>
                     </a>
                 </div>
             </div>

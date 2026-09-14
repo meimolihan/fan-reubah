@@ -28,6 +28,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // Setup background removal toggle
   if (elements.removeBackground) {
     elements.removeBackground.addEventListener("change", () => {
+      if (elements.removeBackground.checked && elements.formatSelect &&
+          (elements.formatSelect.value === "jpeg" || elements.formatSelect.value === "jpg" ||
+           elements.formatSelect.value === "bmp" || elements.formatSelect.value === "gif")) {
+        elements.formatSelect.value = "png";
+      }
       if (elements.bgRemovalOptions) {
         elements.bgRemovalOptions.classList.toggle("hidden", !elements.removeBackground.checked);
       }
@@ -84,25 +89,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function validateFile() {
     if (!fileInput.files || !fileInput.files.length) {
-        showError("Please select an image file first");
+        showError(I18n.t('err.selectImageFirst'));
         return false;
     }
 
     const file = fileInput.files[0];
     if (file.size > MAX_FILE_SIZE) {
-        showError("File size exceeds 32MB limit");
+        showError(I18n.t('err.fileTooLarge'));
         return false;
     }
 
     const isImage = file.type.startsWith('image/');
     const isHeic = isHeicFile(file);
+    const isIcns = isIcnsFile(file);
     
-    if (!isImage && !isHeic) {
-        showError("Please select a valid image file");
+    if (!isImage && !isHeic && !isIcns) {
+        showError(I18n.t('err.invalidImage'));
         return false;
     }
 
+    // ICNS icons rely on transparency; emit PNG unless the user explicitly
+    // chose a format that actually supports it.
+    if (isIcns && elements.formatSelect &&
+        (elements.formatSelect.value === "jpeg" || elements.formatSelect.value === "jpg")) {
+        elements.formatSelect.value = "png";
+    }
+
     return true;
+}
+
+function isIcnsFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  return ext === 'icns';
 }
 
 function isHeicFile(file) {
@@ -177,15 +195,15 @@ function createFormData() {
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: "Unknown error occurred" }));
+            const errorData = await response.json().catch(() => ({}));
             console.error("Server response:", errorData);
-            throw new Error(errorData.error?.message || errorData.message || "Processing failed");
+            throw new Error(I18n.serverError(errorData.error));
         }
 
         await handleSuccess(response, elements.formatSelect?.value || "jpeg");
     } catch (error) {
         console.error("Processing error:", error);
-        showError(error.message || "Failed to process image");
+        showError(error.message || I18n.t('err.processingImage'));
     } finally {
         hideProgress();
         if (submitButton) submitButton.disabled = false;
@@ -239,14 +257,14 @@ function createFormData() {
     const resultInfo = elements.result.querySelector(".result-info");
 
     if (resultPreview && resultInfo) {
-      resultPreview.innerHTML = `<img src="${url}" alt="Processed image" class="max-w-full rounded-lg">`;
+      resultPreview.innerHTML = `<img src="${url}" alt="${I18n.t('processedImageAlt')}" class="max-w-full rounded-lg">`;
       resultInfo.innerHTML = `
         <div class="flex justify-between items-center">
-          <p class="text-sm text-gray-600">Size: ${(blob.size / 1024).toFixed(2)} KB</p>
+          <p class="text-sm text-gray-600">${I18n.t('sizeLabel', { size: (blob.size / 1024).toFixed(2) })}</p>
           <a href="${url}" 
              download="processed.${format}" 
              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            Download Image
+            ${I18n.t('downloadImage')}
           </a>
         </div>
       `;

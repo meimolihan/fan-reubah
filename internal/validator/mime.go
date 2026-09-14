@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dendianugerah/reubah/pkg/errors"
+	"github.com/meimolihan/fan-reubah/pkg/errors"
 )
 
 var allowedMIMETypes = map[string]bool{
-	"image/jpeg":     true,
-	"image/png":      true,
-	"image/webp":     true,
-	"image/gif":      true,
-	"image/bmp":      true,
-	"image/heic":     true,
-	"image/heif":     true,
+	"image/jpeg":      true,
+	"image/png":       true,
+	"image/webp":      true,
+	"image/gif":       true,
+	"image/bmp":       true,
+	"image/heic":      true,
+	"image/heif":      true,
 	"application/pdf": true,
 }
 
@@ -33,11 +33,15 @@ func ValidateMIMEType(file multipart.File) error {
 	}
 
 	mimeType := http.DetectContentType(buffer)
-	
+
 	// Special handling for HEIC/HEIF files since they might not be correctly detected
 	if !allowedMIMETypes[strings.ToLower(mimeType)] {
 		// Check file signature for HEIC/HEIF
 		if isHeicSignature(buffer) {
+			return nil
+		}
+		// ICNS containers start with the literal "icns" magic
+		if len(buffer) >= 4 && string(buffer[:4]) == "icns" {
 			return nil
 		}
 		return errors.New(errors.ErrInvalidMIME, "Unsupported file type: "+mimeType, nil)
@@ -65,12 +69,12 @@ func isHeicSignature(buffer []byte) bool {
 
 	// Convert buffer to string for easier searching
 	bufferStr := string(buffer)
-	
+
 	for _, sig := range heicSignatures {
 		if strings.Contains(bufferStr, sig) {
 			return true
 		}
 	}
-	
+
 	return false
 }

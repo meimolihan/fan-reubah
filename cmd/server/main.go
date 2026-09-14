@@ -9,13 +9,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dendianugerah/reubah/internal/handlers"
+	"github.com/meimolihan/fan-reubah/internal/handlers"
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	// Initialize logger
-	logger := log.New(os.Stdout, "[REUBAH] ", log.LstdFlags|log.Lshortfile)
+	logger := log.New(os.Stdout, "[FAN-REUBAH] ", log.LstdFlags|log.Lshortfile)
 
 	// Create router and setup routes
 	r := setupRouter()
@@ -24,8 +24,9 @@ func main() {
 	srv := &http.Server{
 		Handler:        r,
 		Addr:           getPort(),
-		WriteTimeout:   15 * time.Second,
-		ReadTimeout:    15 * time.Second,
+		WriteTimeout:   120 * time.Second,
+		ReadTimeout:    120 * time.Second,
+		ReadHeaderTimeout: 15 * time.Second,
 		IdleTimeout:    60 * time.Second,
 		MaxHeaderBytes: 1 << 20, // 1MB
 	}
@@ -82,6 +83,7 @@ func setupRouter() *mux.Router {
 	// Routes
 	r.HandleFunc("/", handlers.ShowUploadForm).Methods("GET")
 	r.HandleFunc("/process", handlers.ProcessImage).Methods("POST")
+	r.HandleFunc("/process/svg", handlers.ConvertToSVG).Methods("POST")
 	r.HandleFunc("/process/merge-pdf", handlers.MergePDF).Methods("POST")
 	r.HandleFunc("/process/document", handlers.ConvertDocument).Methods("POST")
 

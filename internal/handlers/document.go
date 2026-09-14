@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dendianugerah/reubah/internal/processor/document"
-	"github.com/dendianugerah/reubah/pkg/errors"
+	"github.com/meimolihan/fan-reubah/internal/processor/document"
+	"github.com/meimolihan/fan-reubah/pkg/errors"
 )
 
 func ConvertDocument(w http.ResponseWriter, r *http.Request) {

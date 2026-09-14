@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         
         if (files.length === 0) {
-            alert("Please select valid image files");
+            alert(I18n.t('err.selectImages'));
             return;
         }
     
@@ -162,20 +162,20 @@ document.addEventListener("DOMContentLoaded", function () {
                     await processFile(formData);
                     processed++;
                 } catch (error) {
-                    errors.push(`Failed to process ${file.name}: ${error.message}`);
+                    errors.push(I18n.t('batchErr.processingFile', { file: file.name, message: error.message }));
                 }
                 
                 updateProgress(processed, total);
             }
 
             if (errors.length > 0) {
-                alert(`Batch processing completed with ${errors.length} errors:\n${errors.join('\n')}`);
+                alert(I18n.t('batchErr.doneWithErrors', { count: errors.length, messages: errors.join('\n') }));
             } else {
-                alert("Batch processing completed successfully!");
+                alert(I18n.t('batchOk.done'));
             }
         } catch (error) {
             console.error("Batch processing error:", error);
-            alert("An error occurred during batch processing");
+            alert(I18n.t('batchErr.general'));
         }
     }
 
@@ -198,14 +198,15 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (!response.ok) {
-                throw new Error('PDF creation failed');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(I18n.serverError(errorData.error, 'err.pdfCreation'));
             }
 
             const blob = await response.blob();
             downloadFile(blob, `merged_${Date.now()}.pdf`);
         } catch (error) {
             console.error('Error creating PDF:', error);
-            alert('Failed to create PDF: ' + error.message);
+            alert(I18n.t('batchErr.pdfFailed', { message: error.message }));
         }
     }
 
@@ -217,8 +218,8 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || "Processing failed");
+                const error = await response.json().catch(() => ({}));
+                throw new Error(I18n.serverError(error.error));
             }
 
             const blob = await response.blob();
@@ -273,7 +274,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateProgress(processed, total) {
         const percentage = (processed / total) * 100;
         elements.batchProgressBar.style.width = `${percentage}%`;
-        elements.batchProgressCount.textContent = `${processed}/${total} files`;
+        elements.batchProgressCount.textContent = I18n.t('filesCount', { n: processed, total });
     }
 
     function resetBatchUpload() {
@@ -282,7 +283,7 @@ document.addEventListener("DOMContentLoaded", function () {
         elements.batchFileList.classList.add("hidden");
         elements.batchProgress.classList.add("hidden");
         elements.batchProgressBar.style.width = "0%";
-        elements.batchProgressCount.textContent = "0/0 files";
+        elements.batchProgressCount.textContent = I18n.t('filesCount', { n: 0, total: 0 });
         elements.batchProcessBtn.disabled = true;
     }
 

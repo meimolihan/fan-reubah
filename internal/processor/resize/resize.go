@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
-	"github.com/dendianugerah/reubah/internal/constants"
-	"github.com/dendianugerah/reubah/pkg/errors"
+	"github.com/meimolihan/fan-reubah/internal/constants"
+	"github.com/meimolihan/fan-reubah/pkg/errors"
 )
 
 // ResizeMode defines how the image should be resized

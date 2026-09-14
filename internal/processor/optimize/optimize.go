@@ -6,8 +6,8 @@ import (
 	"image/png"
 	"io"
 
-	"github.com/dendianugerah/reubah/internal/constants"
-	"github.com/dendianugerah/reubah/pkg/errors"
+	"github.com/meimolihan/fan-reubah/internal/constants"
+	"github.com/meimolihan/fan-reubah/pkg/errors"
 )
 
 type OptimizeOptions struct {

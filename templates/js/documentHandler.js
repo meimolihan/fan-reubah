@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const supportedFormats = ['pdf', 'doc', 'docx', 'odt', 'rtf', 'txt'];
         
         if (!supportedFormats.includes(ext)) {
-            alert("Please select a supported document format");
+            alert(I18n.t('err.unsupportedDocument'));
             return;
         }
 
@@ -97,9 +97,9 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
+                const errorData = await response.json().catch(() => ({}));
                 console.error("Server error:", errorData);
-                throw new Error(errorData.error?.message || errorData.message || "Conversion failed");
+                throw new Error(I18n.serverError(errorData.error, 'err.conversionFailed'));
             }
 
             const blob = await response.blob();
@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
             
         } catch (error) {
             console.error("Conversion error:", error);
-            alert("Failed to convert document: " + error.message);
+            alert(I18n.t('docErr.convertFailed', { message: error.message }));
         } finally {
             state.converting = false;
             elements.convertBtn.disabled = false;

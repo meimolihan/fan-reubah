@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dendianugerah/reubah/internal/processor/document"
-	"github.com/dendianugerah/reubah/internal/validator"
-	"github.com/dendianugerah/reubah/pkg/errors"
+	"github.com/meimolihan/fan-reubah/internal/processor/document"
+	"github.com/meimolihan/fan-reubah/internal/validator"
+	"github.com/meimolihan/fan-reubah/pkg/errors"
 )
 
 // seekableReader wraps a *bytes.Reader to implement io.ReadSeeker

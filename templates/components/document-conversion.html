@@ -23,10 +23,10 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
-                            Choose document
+                            <span x-text="t('chooseDocument')">Choose document</span>
                         </span>
                     </label>
-                    <p class="mt-2" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }">
+                    <p class="mt-2" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('dragDropDocument')">
                         or drag and drop your document here
                     </p>
                     <input id="documentInput" type="file" accept=".pdf,.doc,.docx,.odt,.rtf,.txt" class="sr-only">
@@ -45,12 +45,12 @@
 
     <div class="p-6 rounded-lg shadow space-y-6 transition-colors"
          :class="{ 'bg-darkSurface border border-darkBorder': darkMode, 'bg-white': !darkMode }">
-        <h3 class="text-lg font-medium" :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-900': !darkMode }">
+        <h3 class="text-lg font-medium" :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-900': !darkMode }" x-text="t('conversionOptions')">
             Conversion Options
         </h3>
         <div class="space-y-2">
             <label for="outputFormat" class="block text-sm font-medium"
-                   :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }">
+                   :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('outputFormat')">
                 Output Format
             </label>
             <select id="outputFormat" name="format" 
@@ -59,12 +59,12 @@
                         'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
                         'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
                     }">
-                <option value="pdf">PDF Document (.pdf)</option>
-                <option value="docx">Word Document (.docx)</option>
-                <option value="doc">Word 97-2003 Document (.doc)</option>
-                <option value="odt">OpenDocument Text (.odt)</option>
-                <option value="txt">Plain Text (.txt)</option>
-                <option value="rtf">Rich Text Format (.rtf)</option>
+                <option value="pdf" x-text="t('fmt.pdfDocument')">PDF Document (.pdf)</option>
+                <option value="docx" x-text="t('fmt.wordDocument')">Word Document (.docx)</option>
+                <option value="doc" x-text="t('fmt.wordLegacy')">Word 97-2003 Document (.doc)</option>
+                <option value="odt" x-text="t('fmt.odt')">OpenDocument Text (.odt)</option>
+                <option value="txt" x-text="t('fmt.txt')">Plain Text (.txt)</option>
+                <option value="rtf" x-text="t('fmt.rtf')">Rich Text Format (.rtf)</option>
             </select>
         </div>
     </div>
@@ -75,7 +75,7 @@
                 'text-darkTextPrimary bg-darkAccent hover:bg-darkAccentHover focus:ring-darkAccent': darkMode,
                 'text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500': !darkMode 
             }">
-        Convert Document
+        <span x-text="t('convertDocument')">Convert Document</span>
     </button>
 
     <div id="conversionProgress" class="hidden space-y-4">
@@ -83,7 +83,7 @@
              :class="{ 'bg-darkSurface border border-darkBorder': darkMode, 'bg-white': !darkMode }">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-medium" 
-                      :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }">
+                      :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('convertingDocument')">
                     Converting Document
                 </span>
             </div>

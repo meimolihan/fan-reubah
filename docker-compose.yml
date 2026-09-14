@@ -1,13 +1,18 @@
-version: '3.8'
-
 services:
-  reubah:
-    image: ghcr.io/dendianugerah/reubah:latest
-    container_name: reubah
+  fan-reubah:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mobufan/fan-reubah:latest
+    container_name: fan-reubah
     ports:
-      - "8081:8081"
+      - 8081:8081
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    environment:
+      - HTTP_PROXY=http://10.10.10.252:7893
+      - HTTPS_PROXY=http://10.10.10.252:7893
+      - NO_PROXY=172.17.0.1,127.0.0.1,localhost,10.10.10.0/24
     restart: unless-stopped

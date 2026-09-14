@@ -13,11 +13,16 @@ document.addEventListener("DOMContentLoaded", function () {
     formatSelect: document.getElementById("formatSelect")  
   };
 
-  function isHeicFile(file) {
+function isHeicFile(file) {
     const ext = file.name.split('.').pop().toLowerCase();
     return ext === 'heic' || ext === 'heif' || 
            file.type === 'image/heic' || file.type === 'image/heif';
-  }
+}
+
+function isIcnsFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    return ext === 'icns';
+}
 
   function initializeImagePreview() {
     if (!elements.imageInput || !elements.uploadArea) {
@@ -70,10 +75,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const isImage = file.type.startsWith("image/");
     const isHeic = file.name.toLowerCase().endsWith('.heic') || 
                   file.name.toLowerCase().endsWith('.heif');
+    const isIcns = file.name.toLowerCase().endsWith('.icns');
     
-    if (!isImage && !isHeic) {
-        alert("Please select an image file");
+    if (!isImage && !isHeic && !isIcns) {
+        alert(I18n.t('err.selectImage'));
         return;
+    }
+
+    // ICNS icons rely on an alpha channel; JPEG (and other alpha-less
+    // defaults) would flatten the transparent background away.
+    if (isIcns && elements.formatSelect &&
+        (elements.formatSelect.value === "jpeg" || elements.formatSelect.value === "jpg")) {
+        elements.formatSelect.value = "png";
     }
 
     updateFileStatus(file);
@@ -98,23 +111,23 @@ document.addEventListener("DOMContentLoaded", function () {
         const img = elements.previewDiv.querySelector("img") || document.createElement("img");
         img.className = "max-w-full rounded-lg";
         
-        if (isHeicFile(file)) {
+        if (isHeicFile(file) || isIcnsFile(file)) {
             img.src = '/static/images/heic-placeholder.svg';
-            img.alt = 'HEIC image placeholder';
+            img.alt = I18n.t(isHeicFile(file) ? 'heicPlaceholder' : 'icnsReady');
             elements.uploadArea.classList.add("border-green-500");
             if (elements.uploadText) {
-                elements.uploadText.innerHTML = '<span class="text-green-500">HEIC file ready for processing</span>';
+                elements.uploadText.innerHTML = '<span class="text-green-500">' + I18n.t(isHeicFile(file) ? 'heicReady' : 'icnsReady') + '</span>';
             }
             
             // Force output format to something other than HEIC
-            if (elements.formatSelect) {
+            if (isHeicFile(file) && elements.formatSelect) {
                 if (elements.formatSelect.value === "heic") {
                     elements.formatSelect.value = "jpeg";
                 }
             }
         } else {
             img.src = e.target.result;
-            img.alt = 'Image preview';
+            img.alt = I18n.t('imagePreviewAlt');
             img.onload = () => updateImageInfo(img);
         }
 
@@ -134,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     elements.uploadArea.classList.add("border-green-500");
     if (elements.uploadText) {
-      elements.uploadText.innerHTML = '<span class="text-green-500">File ready for processing</span>';
+      elements.uploadText.innerHTML = '<span class="text-green-500">' + I18n.t('fileReady') + '</span>';
     }
 
     // Update dimension inputs with placeholders
@@ -161,16 +174,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Choose a file
+                    ${I18n.t('chooseFile')}
                 </span>
             </label>
-            <p class="text-gray-500">or drag and drop your image here</p>
+            <p class="text-gray-500">${I18n.t('dragDropImage')}</p>
         `;
     }
 
     // Reset dimension input placeholders
-    if (elements.widthInput) elements.widthInput.placeholder = "Width (px)";
-    if (elements.heightInput) elements.heightInput.placeholder = "Height (px)";
+    if (elements.widthInput) elements.widthInput.placeholder = I18n.t('widthPx');
+    if (elements.heightInput) elements.heightInput.placeholder = I18n.t('heightPx');
     
     // Re-initialize event listeners
     setupEventListeners();

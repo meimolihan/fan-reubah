@@ -1,0 +1,395 @@
+{{ define "svg-conversion" }}
+<div class="space-y-6">
+    <div id="svgUploadArea"
+         class="relative border-2 border-dashed rounded-lg p-6 transition-colors"
+         :class="{ 
+             'border-darkBorder hover:border-darkAccent bg-darkSurface': darkMode,
+             'border-gray-300 hover:border-indigo-500 bg-gray-50': !darkMode 
+         }">
+        <div class="text-center space-y-4">
+            <div class="space-y-2">
+                <svg class="mx-auto h-12 w-12 transition-colors"
+                     :class="{ 'text-darkTextSecondary group-hover:text-darkAccent': darkMode, 'text-gray-400 group-hover:text-indigo-500': !darkMode }"
+                     fill="currentColor" viewBox="0 0 1024 1024">
+                    <path d="M192.512 384h640c11.264 0 22.528 4.096 29.696 12.288 8.192 8.192 12.288 18.432 12.288 29.696V788.48c0 23.552-19.456 43.008-43.008 43.008H192.512v106.496c0 6.144 2.048 11.264 6.144 15.36 4.096 4.096 9.216 6.144 15.36 6.144h724.992c12.288 0 21.504-9.216 21.504-21.504V309.248l-10.24-10.24H823.296c-54.272 0-98.304-44.032-98.304-98.304V72.704l-8.192-9.216H212.992c-6.144 0-11.264 2.048-15.36 6.144-4.096 4.096-6.144 9.216-6.144 15.36v299.008z m-64.512 447.488H43.008C19.456 831.488 0 812.032 0 788.48V427.008c0-11.264 4.096-22.528 12.288-29.696 8.192-8.192 18.432-12.288 29.696-12.288h84.992V84.992c0-47.104 37.888-84.992 84.992-84.992h530.432L1024 282.624v656.384c0 47.104-37.888 84.992-84.992 84.992H212.992c-47.104 0-84.992-37.888-84.992-84.992V831.488z m61.44-364.544c-27.648 0-50.176 6.144-67.584 20.48-19.456 14.336-28.672 32.768-28.672 57.344s9.216 43.008 29.696 55.296c7.168 5.12 26.624 12.288 58.368 22.528 27.648 9.216 44.032 15.36 49.152 18.432 15.36 8.192 23.552 20.48 23.552 34.816 0 11.264-6.144 20.48-16.384 27.648-10.24 6.144-25.6 10.24-44.032 10.24-21.504 0-36.864-4.096-46.08-12.288-11.264-9.216-17.408-23.552-20.48-44.032h-40.96c2.048 34.816 13.312 60.416 34.816 76.8 17.408 13.312 41.984 19.456 73.728 19.456 32.768 0 57.344-7.168 75.776-21.504 17.408-14.336 26.624-33.792 26.624-58.368 0-25.6-11.264-45.056-32.768-59.392-10.24-6.144-31.744-15.36-66.56-26.624-23.552-8.192-37.888-14.336-43.008-17.408-12.288-7.168-17.408-16.384-17.408-27.648 0-13.312 5.12-22.528 15.36-28.672 8.192-5.12 20.48-7.168 36.864-7.168 18.432 0 32.768 3.072 41.984 11.264 9.216 7.168 16.384 19.456 19.456 36.864h40.96c-2.048-29.696-13.312-52.224-30.72-66.56-18.432-14.336-41.984-21.504-71.68-21.504z m118.784 5.12L399.36 746.496h50.176l90.112-274.432h-45.056L424.96 696.32h-1.024l-69.632-223.232h-46.08v-1.024z m368.64-5.12c-37.888 0-67.584 14.336-90.112 41.984-21.504 26.624-31.744 60.416-31.744 101.376s10.24 73.728 31.744 100.352c22.528 27.648 54.272 40.96 94.208 40.96 22.528 0 43.008-3.072 61.44-9.216 17.408-6.144 32.768-14.336 46.08-25.6V601.088H679.936v38.912H747.52V696.32c-8.192 5.12-17.408 9.216-27.648 12.288-11.264 3.072-22.528 5.12-33.792 5.12-30.72 0-54.272-9.216-68.608-27.648-13.312-17.408-20.48-41.984-20.48-74.752 0-33.792 7.168-59.392 22.528-77.824 14.336-17.408 32.768-25.6 56.32-25.6 19.456 0 34.816 4.096 47.104 13.312 11.264 9.216 19.456 21.504 22.528 39.936H788.48c-5.12-30.72-16.384-53.248-33.792-68.608-19.456-17.408-45.056-25.6-77.824-25.6z" fill="currentColor" />
+                </svg>
+                <div class="flex flex-col items-center space-y-2 text-sm"
+                     :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-600': !darkMode }">
+                    <label for="svgImageInput" class="relative cursor-pointer rounded-md font-medium"
+                           :class="{ 'text-darkAccent hover:text-darkAccentHover': darkMode, 'text-indigo-600 hover:text-indigo-500': !darkMode }">
+                        <span class="inline-flex items-center px-4 py-2 border text-sm rounded-full transition-colors"
+                              :class="{ 'border-darkAccent hover:bg-darkAccent/10': darkMode, 'border-indigo-500 hover:bg-indigo-50': !darkMode }">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span x-text="t('svg.chooseFile')">Choose image</span>
+                        </span>
+                    </label>
+                    <p :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.chooseFileHint')">
+                        or drag and drop an image here
+                    </p>
+                    <p class="text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-400': !darkMode }" x-text="t('svg.uploadSupported')">
+                        Supports JPG / PNG / GIF / WebP / BMP / TIFF and more
+                    </p>
+                    <p class="text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-400': !darkMode }" x-text="t('maxFileSize')">
+                        Maximum file size: 32MB
+                    </p>
+                </div>
+                <input id="svgImageInput" type="file" accept="image/*,.heic,.heif" class="sr-only">
+            </div>
+
+            <div id="svgFileStatus" class="hidden">
+                <p class="text-sm" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-600': !darkMode }">
+                    <span id="svgFileName" class="font-medium" :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-900': !darkMode }"></span>
+                    <span id="svgFileSize"></span>
+                </p>
+                <p class="mt-1 text-sm font-medium" :class="{ 'text-darkAccent': darkMode, 'text-indigo-600': !darkMode }" x-text="t('svg.fileReady')">
+                    Image ready for conversion
+                </p>
+            </div>
+
+            <div id="svgPreview" class="hidden relative">
+                <img class="max-h-64 mx-auto rounded-lg shadow-md" :alt="t('svg.previewAlt')" alt="Original preview">
+                <button type="button" id="svgRemovePreview"
+                        class="absolute top-2 left-2 p-2 rounded-full text-sm transition-colors cursor-pointer text-white"
+                        :class="{ 'bg-error-dark/80 hover:bg-error-dark': darkMode, 'bg-error-light/80 hover:bg-error-light': !darkMode }"
+                        :aria-label="t('removeImage')" aria-label="Remove image">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-6 rounded-lg shadow space-y-6 transition-colors"
+         :class="{ 'bg-darkSurface border border-darkBorder': darkMode, 'bg-white': !darkMode }">
+        <h3 class="text-lg font-medium" :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-900': !darkMode }" x-text="t('svg.options')">
+            Vectorization Options
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="group cursor-pointer">
+                <label for="svgPreset" class="block text-sm font-medium mb-1 cursor-pointer"
+                       :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.preset')">
+                    Preset
+                </label>
+                <select id="svgPreset" name="preset" x-model="svgPreset"
+                        class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base rounded-md shadow-sm transition-colors"
+                        :class="{ 
+                            'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                            'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                        }">
+                    <option value="" x-text="t('svg.preset.default')">Default</option>
+                    <option value="poster" x-text="t('svg.preset.poster')">Poster</option>
+                    <option value="photo" x-text="t('svg.preset.photo')">Photo</option>
+                    <option value="bw" x-text="t('svg.preset.bw')">B&W artwork</option>
+                </select>
+            </div>
+
+            <div class="group cursor-pointer">
+                <label for="svgHierarchical" class="block text-sm font-medium mb-1 cursor-pointer"
+                       :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.hierarchical')">
+                    Merge mode
+                </label>
+                <select id="svgHierarchical" name="hierarchical"
+                        class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base rounded-md shadow-sm transition-colors"
+                        :class="{ 
+                            'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                            'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                        }">
+                    <option value="cutout" selected x-text="t('svg.hierarchical.cutout')">Seam-free cutout</option>
+                    <option value="stacked" x-text="t('svg.hierarchical.stacked')">Stacked</option>
+                </select>
+            </div>
+
+            <div class="group cursor-pointer">
+                <label for="svgMode" class="block text-sm font-medium mb-1 cursor-pointer"
+                       :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.mode')">
+                    Curve mode
+                </label>
+                <select id="svgMode" name="mode"
+                        class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base rounded-md shadow-sm transition-colors"
+                        :class="{ 
+                            'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                            'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                        }">
+                    <option value="spline" selected x-text="t('svg.mode.spline')">Spline (smooth)</option>
+                    <option value="polygon" x-text="t('svg.mode.polygon')">Polygon (straight edges)</option>
+                    <option value="pixel" x-text="t('svg.mode.pixel')">Pixel (exact lattice)</option>
+                </select>
+            </div>
+
+            <div class="group cursor-pointer">
+                <label for="svgOptimize" class="block text-sm font-medium mb-1 cursor-pointer"
+                       :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.optimize')">
+                    Output optimization
+                </label>
+                <select id="svgOptimize" name="optimize"
+                        class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base rounded-md shadow-sm transition-colors"
+                        :class="{ 
+                            'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                            'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                        }">
+                    <option value="" x-text="t('svg.optimize.1')">Standard</option>
+                    <option value="0" x-text="t('svg.optimize.0')">Off</option>
+                    <option value="2" x-text="t('svg.optimize.2')">Compact</option>
+                </select>
+            </div>
+
+            <div class="group cursor-pointer">
+                <label for="svgSimplify" class="block text-sm font-medium mb-1 cursor-pointer"
+                       :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.simplify')">
+                    Simplify tolerance
+                </label>
+                <select id="svgSimplify" name="simplify"
+                        class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base rounded-md shadow-sm transition-colors"
+                        :class="{ 
+                            'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                            'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                        }">
+                    <option value="" x-text="t('svg.simplify.off')">Off</option>
+                    <option value="0.5">0.5</option>
+                    <option value="1.0">1.0</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2.0">2.0</option>
+                    <option value="2.5">2.5</option>
+                    <option value="3.0">3.0</option>
+                </select>
+                <p class="mt-1 text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.simplifyDesc')">
+                    Curve fitting tolerance in pixels
+                </p>
+            </div>
+
+            <div class="group cursor-pointer">
+                <label for="svgMaxColors" class="block text-sm font-medium mb-1 cursor-pointer"
+                       :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.maxColors')">
+                    Max colors
+                </label>
+                <select id="svgMaxColors" name="maxColors"
+                        class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base rounded-md shadow-sm transition-colors"
+                        :class="{ 
+                            'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                            'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                        }">
+                    <option value="" x-text="t('svg.maxColors.off')">Unlimited</option>
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                    <option value="64">64</option>
+                </select>
+                <p class="mt-1 text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.maxColorsDesc')">
+                    Auto-quantize to at most N colors
+                </p>
+            </div>
+
+            <div class="group cursor-pointer">
+                <label for="svgFilterSpeckle" class="block text-sm font-medium mb-1 cursor-pointer"
+                       :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.filterSpeckle')">
+                    Speckle filter
+                </label>
+                <select id="svgFilterSpeckle" name="filterSpeckle"
+                        class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base rounded-md shadow-sm transition-colors"
+                        :class="{ 
+                            'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                            'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                        }">
+                    <option value="" x-text="t('svg.filterSpeckle.auto')">Auto</option>
+                    <option value="0">0</option>
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="12">12</option>
+                    <option value="16">16</option>
+                    <option value="24">24</option>
+                    <option value="32">32</option>
+                </select>
+                <p class="mt-1 text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.filterSpeckleDesc')">
+                    Discard patches smaller than this side squared
+                </p>
+            </div>
+
+            <div class="group cursor-pointer">
+                <label for="svgColorPrecision" class="block text-sm font-medium mb-1 cursor-pointer"
+                       :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.colorPrecision')">
+                    Color precision
+                </label>
+                <select id="svgColorPrecision" name="colorPrecision"
+                        class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base rounded-md shadow-sm transition-colors"
+                        :class="{ 
+                            'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                            'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                        }">
+                    <option value="" x-text="t('svg.colorPrecision.auto')">Auto</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                </select>
+                <p class="mt-1 text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.colorPrecisionDesc')">
+                    Significant bits per channel (1-8)
+                </p>
+            </div>
+
+            <div class="group cursor-pointer">
+                <label for="svgGradientStep" class="block text-sm font-medium mb-1 cursor-pointer"
+                       :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.gradientStep')">
+                    Gradient step
+                </label>
+                <select id="svgGradientStep" name="gradientStep"
+                        class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base rounded-md shadow-sm transition-colors"
+                        :class="{ 
+                            'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                            'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                        }">
+                    <option value="" x-text="t('svg.gradientStep.auto')">Auto</option>
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                    <option value="48">48</option>
+                    <option value="64">64</option>
+                    <option value="96">96</option>
+                    <option value="128">128</option>
+                </select>
+                <p class="mt-1 text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.gradientStepDesc')">
+                    Color difference between layers (0-255)
+                </p>
+            </div>
+
+            <div class="group cursor-pointer">
+                <label for="svgPathPrecision" class="block text-sm font-medium mb-1 cursor-pointer"
+                       :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.pathPrecision')">
+                    Coordinate precision
+                </label>
+                <select id="svgPathPrecision" name="pathPrecision"
+                        class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base rounded-md shadow-sm transition-colors"
+                        :class="{ 
+                            'bg-darkInput border-darkBorder text-darkTextPrimary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                            'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                        }">
+                    <option value="" x-text="t('svg.pathPrecision.auto')">Auto</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+                <p class="mt-1 text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.pathPrecisionDesc')">
+                    Decimal places in path coordinates
+                </p>
+            </div>
+        </div>
+
+        <div x-show="svgPreset === 'bw'" class="space-y-4 rounded-lg p-4 transition-colors"
+             :class="{ 'bg-darkInput border border-darkBorder': darkMode, 'bg-gray-50 border border-gray-200': !darkMode }">
+            <h4 class="text-sm font-medium" :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-900': !darkMode }" x-text="t('svg.bwOptions')">
+                B&W mode options
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="svgThreshold" class="block text-sm font-medium mb-1"
+                           :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.threshold')">
+                        Fixed threshold
+                    </label>
+                    <input type="number" id="svgThreshold" name="threshold" min="0" max="255" value="128"
+                           class="mt-1 block w-full pl-3 pr-3 py-2 rounded-md shadow-sm transition-colors"
+                           :class="{ 
+                               'bg-darkInput border-darkBorder text-darkTextPrimary placeholder-darkTextSecondary hover:bg-darkInputHover hover:border-darkAccent focus:bg-darkInputFocus focus:border-darkAccent focus:ring-1 focus:ring-darkAccent': darkMode,
+                               'bg-white border-gray-300 hover:border-indigo-300 focus:ring-indigo-500 focus:border-indigo-500': !darkMode 
+                           }">
+                    <p class="mt-1 text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.thresholdDesc')">
+                        Foreground below this gray level (0-255)
+                    </p>
+                </div>
+                <label for="svgAdaptive" class="block cursor-pointer self-end">
+                    <div class="flex items-center justify-between p-3 rounded-lg transition-colors"
+                         :class="{ 'bg-darkSurface hover:bg-darkSurfaceHover border border-darkBorder': darkMode, 'bg-white hover:bg-gray-50 border border-gray-200': !darkMode }">
+                        <div>
+                            <span class="text-sm font-medium block"
+                                  :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.adaptive')">
+                                Adaptive threshold
+                            </span>
+                            <span class="text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.adaptiveDesc')">
+                                Bradley-Roth for uneven lighting
+                            </span>
+                        </div>
+                        <input type="checkbox" id="svgAdaptive" name="adaptive"
+                               class="form-checkbox h-5 w-5 transition-colors duration-200 ease-in-out rounded cursor-pointer"
+                               :class="{ 'border-darkBorder text-darkAccent focus:ring-darkAccent': darkMode, 'border-gray-300 text-indigo-600 focus:ring-indigo-500': !darkMode }">
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <button id="svgConvertBtn" type="button" disabled
+            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="{ 
+                'text-darkTextPrimary bg-darkAccent hover:bg-darkAccentHover focus:ring-darkAccent': darkMode,
+                'text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500': !darkMode 
+            }">
+        <span x-text="t('svg.convert')">Convert to SVG</span>
+    </button>
+
+    <div id="svgProgress" class="hidden space-y-4">
+        <div class="p-4 rounded-lg shadow transition-colors"
+             :class="{ 'bg-darkSurface border border-darkBorder': darkMode, 'bg-white': !darkMode }">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium" 
+                      :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }" x-text="t('svg.converting')">
+                    Vectorizing, please wait...
+                </span>
+            </div>
+            <div class="w-full rounded-full h-2" :class="{ 'bg-darkInput': darkMode, 'bg-gray-200': !darkMode }">
+                <div class="h-2 rounded-full animate-pulse transition-colors" :class="{ 'bg-darkAccent': darkMode, 'bg-indigo-600': !darkMode }"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="svgResult" class="hidden rounded-lg shadow-lg overflow-hidden transition-colors"
+         :class="{ 'bg-darkSurface border border-darkBorder': darkMode, 'bg-white': !darkMode }">
+        <div class="px-4 py-3 sm:px-6 transition-colors"
+             :class="{ 'border-b border-darkBorder bg-darkInput': darkMode, 'border-b border-gray-200 bg-gray-50': !darkMode }">
+            <h3 class="text-lg leading-6 font-medium transition-colors"
+                :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-900': !darkMode }" x-text="t('svg.processedSvg')">
+                Vector result
+            </h3>
+        </div>
+        <div class="p-6 space-y-6">
+            <div class="rounded-lg overflow-hidden shadow-md transition-colors p-4"
+                 :class="{ 'border border-darkBorder bg-darkInput': darkMode, 'border border-gray-200 bg-gray-50': !darkMode }">
+                <img id="svgResultPreview" :alt="t('svg.previewAlt')" alt="Vector result" class="max-h-80 mx-auto">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="transition-colors" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.originalSize')">
+                        Original size
+                    </p>
+                    <p class="font-medium transition-colors svg-original-size" :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-900': !darkMode }"></p>
+                </div>
+                <div>
+                    <p class="transition-colors" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('svg.vectorSize')">
+                        SVG size
+                    </p>
+                    <p class="font-medium transition-colors svg-vector-size" :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-900': !darkMode }"></p>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <a id="svgDownload" href="#" download="vectorized.svg"
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm transition-colors duration-200"
+                   :class="{ 
+                       'text-darkTextPrimary bg-darkAccent hover:bg-darkAccentHover focus:ring-darkAccent': darkMode,
+                       'text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500': !darkMode 
+                   }">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    <span x-text="t('svg.downloadSvg')">Download SVG</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}

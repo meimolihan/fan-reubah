@@ -3,4 +3,12 @@
 README.md
 Dockerfile
 .dockerignore
-tmp/ 
+tmp/
+bin/
+
+# 前端构建产物与依赖（由 frontend 阶段重新构建，无需进入构建上下文）
+templates/node_modules/
+static/css/
+static/js/
+# VTracer Rust 构建产物（由 vtracer 阶段重新编译）
+vtracer/target/

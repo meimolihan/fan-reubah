@@ -1,4 +1,8 @@
 templates/node_modules/
 
+bin/
+
 static/css/*.css
 static/js/*.js
+# Rust 构建产物
+vtracer/target/

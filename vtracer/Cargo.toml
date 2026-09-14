@@ -1,0 +1,20 @@
+[workspace]
+
+members = [
+    "crates/vtracer",
+    "crates/vtracer-cli",
+]
+
+resolver = "2"
+
+[workspace.package]
+version = "1.0.0-alpha.4"
+authors = ["Chris Tsang <chris.2y3@outlook.com>"]
+edition = "2024"
+license = "MIT OR Apache-2.0"
+homepage = "http://www.visioncortex.org/vtracer"
+repository = "https://github.com/visioncortex/vtracer/"
+
+[workspace.dependencies]
+visioncortex = "0.9.3"
+flo_curves = "0.8"

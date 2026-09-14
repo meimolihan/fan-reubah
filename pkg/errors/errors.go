@@ -19,6 +19,7 @@ const (
 	ErrResizeFailed      ErrorCode = "RESIZE_FAILED"
 	ErrBackgroundRemoval ErrorCode = "BACKGROUND_REMOVAL_FAILED"
 	ErrPDFConversionFailed ErrorCode = "PDF_CONVERSION_FAILED"
+	ErrSVGConversion ErrorCode = "SVG_CONVERSION_FAILED"
 )
 
 // AppError represents an application error
@@ -73,7 +74,7 @@ func getHTTPCode(code ErrorCode) int {
 	switch code {
 	case ErrInvalidFormat, ErrInvalidMIME, ErrInvalidSize:
 		return http.StatusBadRequest
-	case ErrProcessingFailed, ErrOptimizationFailed, ErrResizeFailed, ErrBackgroundRemoval:
+	case ErrProcessingFailed, ErrOptimizationFailed, ErrResizeFailed, ErrBackgroundRemoval, ErrSVGConversion, ErrPDFConversionFailed:
 		return http.StatusUnprocessableEntity
 	default:
 		return http.StatusInternalServerError

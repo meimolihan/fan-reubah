@@ -1,4 +1,4 @@
-module github.com/dendianugerah/reubah
+module github.com/meimolihan/fan-reubah
 
 go 1.22.1
 
