@@ -36,7 +36,7 @@ func main() {
 
 	// Start the server
 	go func() {
-		logger.Printf("Server starting on %s", srv.Addr)
+		logger.Printf("Listening on [::]%s", srv.Addr)
 		serverErrors <- srv.ListenAndServe()
 	}()
 
