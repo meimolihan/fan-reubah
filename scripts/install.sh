@@ -148,6 +148,54 @@ detect_rel_arch() {
     *) printf '' ;;
   esac
 }
+# fan-reubah 通过 cgo 动态链接 libwebp/libheif 等运行库；
+# 目标机缺失时（如 error: libheif.so.1: cannot open...）在 Debian/Ubuntu 下自动安装。
+ensure_runtime_libs() {
+  command -v ldd >/dev/null 2>&1 || return 0
+  local missing
+  missing="$(ldd "${BIN_PATH}" 2>/dev/null | awk '/=> not found/{print $1}' | sort -u)"
+  [ -z "${missing}" ] && return 0
+
+  printf "  %s\n" "${gl_huang}[提示]${reset} fan-reubah 缺少运行时库："
+  local so
+  for so in ${missing}; do
+    printf "      %s\n" "${gl_bai}${so}${reset}"
+  done
+
+  command -v apt-get >/dev/null 2>&1 || {
+    printf "  %s\n" "    未检测到 apt，请手动安装上述运行库后重启：${gl_bai}systemctl restart ${APP_NAME}${reset}"
+    return 1
+  }
+
+  local so base ver pkg
+  for so in ${missing}; do
+    base="${so%%.*}"
+    ver="${so#*.so.}"
+    # 优先匹配带版本号的包名（libheif.so.1 -> libheif1），搜不到再退化为前缀匹配
+    pkg="$(apt-cache search --names-only "^${base}${ver}$" 2>/dev/null | awk '{print $1}' | head -1 || true)"
+    if [ -z "${pkg}" ]; then
+      pkg="$(apt-cache search --names-only "^${base}" 2>/dev/null | awk '{print $1}' | head -1 || true)"
+    fi
+    if [ -z "${pkg}" ]; then
+      printf "  %s\n" "    未能为 ${gl_bai}${so}${reset} 匹配到 apt 包，请手动处理。"
+      continue
+    fi
+    if apt-get install -y -qq "${pkg}" >/dev/null 2>&1; then
+      ok "已安装缺失运行库 ${gl_bai}${pkg}${reset}（${so}）"
+    else
+      printf "  %s\n" "    安装 ${gl_bai}${pkg}${reset} 失败，请手动执行：${gl_bai}apt install ${pkg}${reset}"
+    fi
+  done
+
+  local still
+  still="$(ldd "${BIN_PATH}" 2>/dev/null | awk '/=> not found/{print $1}' | sort -u)"
+  if [ -n "${still}" ]; then
+    printf "  %s\n" "${gl_huang}[警告]${reset} 仍有运行库缺失: ${gl_bai}${still}${reset}"
+    printf "  %s\n" "    检查: ${gl_bai}ldd ${BIN_PATH} | grep 'not found'${reset}"
+    return 1
+  fi
+  return 0
+}
 # ==================================================
 
 FRONTEND_SRC="${REPO_ROOT:-}"
@@ -419,6 +467,10 @@ ok "正在安装 ${gl_bai}${APP_NAME}${reset} 二进制 ${gl_hong}.${gl_huang}.$
 cp -f "${BIN_SRC}" "${BIN_PATH}"
 chmod +x "${BIN_PATH}"
 ok "已安装二进制至 ${gl_bai}${BIN_PATH}${reset}"
+
+# 检测并自动安装缺失的动态运行库（libwebp/libheif 等），避免服务启动时报
+# "error while loading shared libraries" 后反复重启。
+ensure_runtime_libs || true
 
 # ---- SVG 矢量转换引擎（vtracer）----
 deploy_vtracer() {
