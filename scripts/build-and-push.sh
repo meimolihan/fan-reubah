@@ -30,8 +30,8 @@ command -v go >/dev/null 2>&1 || error "未找到 go，请先安装并加入 PAT
 command -v npm >/dev/null 2>&1 || error "未找到 npm/node，请先安装 Node.js"
 command -v gcc >/dev/null 2>&1 || error "未找到 gcc，fan-reubah 依赖 cgo（libwebp/libheif）"
 command -v pkg-config >/dev/null 2>&1 || error "未找到 pkg-config"
-command -v pkg-config --exists libwebp 2>/dev/null || warn "缺少 libwebp 开发库，编译可能失败（Debian/Ubuntu: apt install libwebp-dev）"
-command -v pkg-config --exists libheif 2>/dev/null || warn "缺少 libheif 开发库，编译可能失败（Debian/Ubuntu: apt install libheif-dev）"
+pkg-config --exists libwebp 2>/dev/null || warn "缺少 libwebp 开发库，编译可能失败（Debian/Ubuntu: apt install libwebp-dev）"
+pkg-config --exists libheif 2>/dev/null || warn "缺少 libheif 开发库，编译可能失败（Debian/Ubuntu: apt install libheif-dev）"
 
 # ===================== 重复Tag/Release自动清理 =====================
 info "检查远端是否存在 Release ${TAG}"
@@ -69,7 +69,7 @@ grep -n '"version"' "${BUMP_FILE}"
 
 # ===================== 构建 =====================
 info "构建前端生产包"
-(cd templates && npm ci --no-audit --no-fund || npm install --no-audit --no-fund) && CI=true npm run build
+(cd templates && { npm ci --no-audit --no-fund || npm install --no-audit --no-fund; } && CI=true npm run build)
 
 COMMIT_SHA=$(git rev-parse --short HEAD)
 info "构建后端 fan-reubah v${TARGET_VER} (commit ${COMMIT_SHA})"
