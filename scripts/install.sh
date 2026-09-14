@@ -183,7 +183,14 @@ ensure_runtime_libs() {
     if apt-get install -y -qq "${pkg}" >/dev/null 2>&1; then
       ok "已安装缺失运行库 ${gl_bai}${pkg}${reset}（${so}）"
     else
-      printf "  %s\n" "    安装 ${gl_bai}${pkg}${reset} 失败，请手动执行：${gl_bai}apt install ${pkg}${reset}"
+      printf "  %s\n" "    首次安装失败（可能软件源索引未更新），刷新后重试..."
+      apt-get update -qq >/dev/null 2>&1 || true
+      if apt-get install -y -qq "${pkg}" >/dev/null 2>&1; then
+        ok "已安装缺失运行库 ${gl_bai}${pkg}${reset}（${so}）"
+      else
+        printf "  %s\n" "    安装 ${gl_bai}${pkg}${reset} 失败，请手动执行并查看输出："
+        printf "    %s\n" "${gl_bai}apt-get update && apt-get install -y ${pkg}${reset}"
+      fi
     fi
   done
 
