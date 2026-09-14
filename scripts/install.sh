@@ -141,6 +141,13 @@ resolve_local_src() {
   done
   return 1
 }
+detect_rel_arch() {
+  case "$(uname -m)" in
+    x86_64|amd64) printf 'amd64' ;;
+    aarch64|arm64) printf 'arm64' ;;
+    *) printf '' ;;
+  esac
+}
 # ==================================================
 
 FRONTEND_SRC="${REPO_ROOT:-}"
@@ -379,12 +386,10 @@ if [ ! -f "${BIN_SRC}" ]; then
     error "未找到二进制文件 ${BIN_SRC}（-b 显式指定）"
   fi
   # 本地无构建产物时，尝试从 GitHub Release 下载对应架构的二进制
-  REL_ARCH=""
-  case "$(uname -m)" in
-    x86_64|amd64) REL_ARCH="amd64" ;;
-    aarch64|arm64) REL_ARCH="arm64" ;;
-    *) error "不支持的架构: $(uname -m)，请先本地构建（scripts/build-and-push.sh）或使用 -b 指定" ;;
-  esac
+  REL_ARCH="$(detect_rel_arch)"
+  if [ -z "${REL_ARCH}" ]; then
+    error "不支持的架构: $(uname -m)，请先本地构建（scripts/build-and-push.sh）或使用 -b 指定"
+  fi
   REL_URL="https://github.com/meimolihan/fan-reubah/releases/latest/download/fan-reubah_linux_${REL_ARCH}"
   ok "本地无构建产物，尝试从 GitHub Release 下载 ${gl_bai}${REL_URL}${reset}"
   TMP_BIN="$(mktemp)"
@@ -415,7 +420,7 @@ cp -f "${BIN_SRC}" "${BIN_PATH}"
 chmod +x "${BIN_PATH}"
 ok "已安装二进制至 ${gl_bai}${BIN_PATH}${reset}"
 
-# ---- SVG 矢量转换引擎（vtracer，可选）----
+# ---- SVG 矢量转换引擎（vtracer）----
 deploy_vtracer() {
   local src="$1"
   if cp -f "${src}" /usr/local/bin/vtracer && chmod +x /usr/local/bin/vtracer; then
@@ -431,18 +436,40 @@ for c in \
   "${SCRIPT_DIR}/../bin/vtracer"; do
   if [ -x "${c}" ]; then VTRACER_SRC="${c}"; break; fi
 done
+
+vtracer_ready() { [ -x /usr/local/bin/vtracer ] || command -v vtracer >/dev/null 2>&1; }
+
 if [ -n "${VTRACER_SRC}" ]; then
   deploy_vtracer "${VTRACER_SRC}"
-elif [ -n "${REPO_ROOT:-}" ] && [ -d "${REPO_ROOT}/vtracer" ] && command -v cargo >/dev/null 2>&1; then
-  printf "  %s\n" "${gl_huang}[提示]${reset} 未找到预编译 vtracer，尝试用 cargo 编译（可能需要几分钟）..."
-  if (cd "${REPO_ROOT}/vtracer" && cargo build --release -p vtracer-cli >/dev/null 2>&1); then
-    deploy_vtracer "${REPO_ROOT}/vtracer/target/release/vtracer"
+fi
+
+if ! vtracer_ready; then
+  # 已安装则跳过；否则依次尝试：Release 预编译 -> 仓库内 cargo 编译
+  VTRACER_ARCH="$(detect_rel_arch)"
+  if [ -n "${VTRACER_ARCH}" ]; then
+    VTRACER_URL="https://github.com/meimolihan/fan-reubah/releases/latest/download/vtracer_linux_${VTRACER_ARCH}"
+    printf "  %s\n" "${gl_huang}[提示]${reset} 未找到 vtracer，从 GitHub Release 下载预编译引擎..."
+    TMP_VTRACER="$(mktemp)"
+    if curl -fsSL "${VTRACER_URL}" -o "${TMP_VTRACER}"; then
+      chmod +x "${TMP_VTRACER}"
+      deploy_vtracer "${TMP_VTRACER}"
+      rm -f "${TMP_VTRACER}"
+    else
+      printf "  %s\n" "${gl_huang}[提示]${reset} Release 下载失败，尝试本地 cargo 编译..."
+      if [ -n "${REPO_ROOT:-}" ] && [ -d "${REPO_ROOT}/vtracer" ] && command -v cargo >/dev/null 2>&1; then
+        if (cd "${REPO_ROOT}/vtracer" && cargo build --release -p vtracer-cli >/dev/null 2>&1); then
+          deploy_vtracer "${REPO_ROOT}/vtracer/target/release/vtracer"
+        else
+          printf "  %s\n" "${gl_huang}[提示]${reset} vtracer 编译失败，SVG 矢量转换功能不可用（不影响其他功能）"
+        fi
+      else
+        printf "  %s\n" "${gl_huang}[提示]${reset} vtracer 不可用，SVG 矢量转换功能受限（不影响其他功能）。"
+      fi
+    fi
   else
-    printf "  %s\n" "${gl_huang}[提示]${reset} vtracer 编译失败，SVG 矢量转换功能不可用（不影响其他功能）"
+    printf "  %s\n" "${gl_huang}[提示]${reset} 不支持的架构，无法下载预编译 vtracer；SVG 矢量转换功能不可用（不影响其他功能）。"
+    printf "  %s\n" "${gl_hui}    可先运行 bash scripts/build-vtracer.sh 编译安装。${reset}"
   fi
-else
-  printf "  %s\n" "${gl_huang}[提示]${reset} 未找到 vtracer，SVG 矢量转换功能不可用（不影响其他功能）。"
-  printf "  %s\n" "${gl_hui}    可先运行 bash scripts/build-vtracer.sh 编译安装。${reset}"
 fi
 
 ok "正在部署应用目录 ${gl_lan}${APP_DIR}${reset}"

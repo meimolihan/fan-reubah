@@ -96,6 +96,16 @@ cp ./bin/fan-reubah "./bin/fan-reubah_linux_${REL_ARCH}"
 file ./bin/fan-reubah
 ls -lh ./bin/fan-reubah
 
+info "构建 SVG 矢量转换引擎 vtracer-cli（release）"
+if command -v cargo >/dev/null 2>&1 && [ -d vtracer ]; then
+    (cd vtracer && cargo build --release -p vtracer-cli)
+    cp ./vtracer/target/release/vtracer "./bin/vtracer_linux_${REL_ARCH}"
+    file ./bin/vtracer_linux_${REL_ARCH}
+    ls -lh ./bin/vtracer_linux_${REL_ARCH}
+else
+    warn "未找到 cargo 或缺少 vtracer 源码，跳过 vtracer 构建（SVG 矢量转换功能将不可用）"
+fi
+
 info "打包前端资产 bin/fan-reubah-assets.tar.gz（templates + static）"
 tar -czf ./bin/fan-reubah-assets.tar.gz \
     --exclude='templates/node_modules' \
@@ -125,6 +135,7 @@ if command -v gh >/dev/null 2>&1; then
         info "新建 Release ${TAG}"
         gh release create "${TAG}" \
             "./bin/fan-reubah_linux_${REL_ARCH}" \
+            "./bin/vtracer_linux_${REL_ARCH}" \
             "./bin/fan-reubah-assets.tar.gz" \
             -R "${GH_REPO}" \
             --title "Release ${TAG}" \

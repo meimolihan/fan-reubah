@@ -3,6 +3,17 @@
 members = [
     "crates/vtracer",
     "crates/vtracer-cli",
+    "crates/vtracer-bench",
+]
+
+# The pre-1.0 webapp is kept in the tree for now but is no longer part of the
+# build. It is superseded by the crates/ workspace above.
+exclude = [
+    "webapp",
+    # pyo3 extension-module cdylib; built with maturin, not the core workspace.
+    "crates/vtracer-py",
+    # wasm-bindgen cdylib; built with wasm-pack as the Node package's core.
+    "nodejs",
 ]
 
 resolver = "2"
@@ -17,4 +28,7 @@ repository = "https://github.com/visioncortex/vtracer/"
 
 [workspace.dependencies]
 visioncortex = "0.9.3"
+# Schneider curve fitting for the simplify pass. visioncortex pins an old
+# flo_curves internally for legacy reasons; we depend on the current one
+# directly and convert at the call boundary.
 flo_curves = "0.8"

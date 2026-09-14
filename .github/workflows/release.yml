@@ -1,0 +1,104 @@
+name: Release
+
+# 推送 v 开头 tag（如 v1.0.0）时自动编译并创建 GitHub Release：
+#   fan-reubah_linux_amd64 / fan-reubah_linux_arm64  （Go 主程序）
+#   vtracer_linux_amd64    / vtracer_linux_arm64     （SVG 矢量引擎）
+#   fan-reubah-assets.tar.gz                          （前端资源包）
+# 安装脚本 install.sh 会按架构自动下载这些资产。
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: templates/package-lock.json
+
+      - name: Install build dependencies (native + arm64 cross)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc g++ pkg-config \
+            libwebp-dev libheif-dev libde265-dev libx265-dev \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+            libwebp-dev:arm64 libheif-dev:arm64 libde265-dev:arm64 libx265-dev:arm64
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add arm64 Rust target
+        run: rustup target add aarch64-unknown-linux-gnu
+
+      - name: Build vtracer (amd64)
+        run: cd vtracer && cargo build --release -p vtracer-cli
+
+      - name: Build vtracer (arm64)
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+        run: cd vtracer && cargo build --release --target aarch64-unknown-linux-gnu -p vtracer-cli
+
+      - name: Build frontend assets
+        run: |
+          cd templates
+          npm ci --no-audit --no-fund
+          CI=true npm run build
+
+      - name: Build Go binary (amd64)
+        env:
+          CGO_ENABLED: '1'
+        run: |
+          mkdir -p bin
+          go build -buildvcs=false -ldflags="-s -w" -o bin/fan-reubah_linux_amd64 ./cmd/server
+
+      - name: Build Go binary (arm64 cross)
+        env:
+          CC: aarch64-linux-gnu-gcc
+          CXX: aarch64-linux-gnu-g++
+          CGO_ENABLED: '1'
+          GOOS: linux
+          GOARCH: arm64
+          PKG_CONFIG_PATH: /usr/lib/aarch64-linux-gnu/pkgconfig
+          PKG_CONFIG_ALLOW_CROSS: '1'
+        run: go build -buildvcs=false -ldflags="-s -w" -o bin/fan-reubah_linux_arm64 ./cmd/server
+
+      - name: Copy vtracer binaries into bin/
+        run: |
+          cp vtracer/target/release/vtracer bin/vtracer_linux_amd64
+          cp vtracer/target/aarch64-unknown-linux-gnu/release/vtracer bin/vtracer_linux_arm64
+          chmod +x bin/vtracer_linux_*
+
+      - name: Package frontend assets
+        run: |
+          tar -czf bin/fan-reubah-assets.tar.gz --exclude='templates/node_modules' templates static
+
+      - name: List release assets
+        run: ls -lh bin/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            bin/fan-reubah_linux_amd64
+            bin/fan-reubah_linux_arm64
+            bin/vtracer_linux_amd64
+            bin/vtracer_linux_arm64
+            bin/fan-reubah-assets.tar.gz
+          generate_release_notes: true
