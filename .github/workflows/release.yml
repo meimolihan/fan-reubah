@@ -32,10 +32,23 @@ jobs:
           cache: npm
           cache-dependency-path: templates/package-lock.json
 
-      - name: Install build dependencies (native + arm64 cross)
+      - name: Enable arm64 architecture and fix apt sources
         run: |
           sudo dpkg --add-architecture arm64
+          # GitHub runner 镜像源（azure.archive/security.ubuntu.com）对 arm64 索引返回 404，
+          # 统一切换为官方源 archive.ubuntu.com（arm64 索引齐全）。
+          if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+            sudo sed -i -E 's#^URIs:.*#URIs: http://archive.ubuntu.com/ubuntu/#g' /etc/apt/sources.list.d/ubuntu.sources
+          fi
+          if [ -f /etc/apt/sources.list ]; then
+            sudo sed -i \
+              -E 's#(deb\s+https?://)[^/]+(/ubuntu/)#\1archive.ubuntu.com\2#g' \
+              -E 's#^deb #deb [arch=amd64,arm64] #g' /etc/apt/sources.list
+          fi
           sudo apt-get update
+
+      - name: Install build dependencies (native + arm64 cross)
+        run: |
           sudo apt-get install -y \
             gcc g++ pkg-config \
             libwebp-dev libheif-dev libde265-dev libx265-dev \
