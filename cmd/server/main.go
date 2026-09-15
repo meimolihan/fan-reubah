@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,11 +10,27 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/meimolihan/fan-reubah/internal/handlers"
 	"github.com/gorilla/mux"
+	"github.com/meimolihan/fan-reubah/internal/handlers"
 )
 
+// buildVersion 由发布构建通过 -ldflags -X main.buildVersion=... 注入；本地未注入时使用默认值。
+var buildVersion = "1.0.4"
+
 func main() {
+	// 子命令：fan-reubah status | uninstall | -version
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "status":
+			os.Exit(rbStatus())
+		case "uninstall":
+			os.Exit(rbUninstall(os.Args[2:]))
+		case "-version", "--version", "-v":
+			fmt.Printf("fan-reubah %s\n", buildVersion)
+			os.Exit(0)
+		}
+	}
+
 	// Initialize logger
 	logger := log.New(os.Stdout, "[FAN-REUBAH] ", log.LstdFlags|log.Lshortfile)
 
@@ -22,13 +39,13 @@ func main() {
 
 	// Create server with timeouts and other configurations
 	srv := &http.Server{
-		Handler:        r,
-		Addr:           getPort(),
-		WriteTimeout:   120 * time.Second,
-		ReadTimeout:    120 * time.Second,
+		Handler:           r,
+		Addr:              getPort(),
+		WriteTimeout:      120 * time.Second,
+		ReadTimeout:       120 * time.Second,
 		ReadHeaderTimeout: 15 * time.Second,
-		IdleTimeout:    60 * time.Second,
-		MaxHeaderBytes: 1 << 20, // 1MB
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    1 << 20, // 1MB
 	}
 
 	// Channel to listen for errors coming from the listener.

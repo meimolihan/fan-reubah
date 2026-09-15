@@ -74,7 +74,7 @@ jobs:
           CGO_ENABLED: '1'
         run: |
           mkdir -p bin
-          go build -buildvcs=false -ldflags="-s -w" -o bin/fan-reubah_linux_amd64 ./cmd/server
+          go build -buildvcs=false -ldflags="-s -w -X main.buildVersion=${GITHUB_REF_NAME#v}" -o bin/fan-reubah_linux_amd64 ./cmd/server
 
       - name: Build Go binary (arm64 cross)
         env:
@@ -85,7 +85,7 @@ jobs:
           GOARCH: arm64
           PKG_CONFIG_PATH: /usr/lib/aarch64-linux-gnu/pkgconfig
           PKG_CONFIG_ALLOW_CROSS: '1'
-        run: go build -buildvcs=false -ldflags="-s -w" -o bin/fan-reubah_linux_arm64 ./cmd/server
+        run: go build -buildvcs=false -ldflags="-s -w -X main.buildVersion=${GITHUB_REF_NAME#v}" -o bin/fan-reubah_linux_arm64 ./cmd/server
 
       - name: Copy vtracer binaries into bin/
         run: |
