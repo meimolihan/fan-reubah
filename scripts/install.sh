@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #
 # fan-reubah - 通用文件转换与图像处理 安装脚本
-# 将构建产物（bin/fan-reubah 或仓库根目录 ./fan-reubah）安装为 systemd 服务，
-# 并把前端模板/静态资源部署到应用目录。可重复执行（升级 = 覆盖二进制并重启服务）。
+# 将自包含单文件二进制（bin/fan-reubah_linux_amd64|arm64 或仓库根目录
+# ./fan-reubah）安装为 systemd 服务。二进制已内嵌前端页面与 vtracer SVG 引擎，
+# 无需再安装引擎或前端资源包。可重复执行（升级 = 覆盖二进制并重启服务）。
 #
 # Usage:
 #   交互式安装（将提示端口与应用目录）:
@@ -114,7 +115,7 @@ SERVICE_FILE="/etc/systemd/system/${APP_NAME}.service"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-}")" && pwd)"
 
 # 远程 curl|bash 执行时 BASH_SOURCE[0] 为空，SCRIPT_DIR 退化引用为当前目录；
-# 若恰在仓库内运行，据此定位仓库根，使二进制/前端产物走本地而非远端下载。
+# 若恰在仓库内运行，据此定位仓库根，使本地二进制走本地而非远端下载。
 REPO_ROOT=""
 for _c in "${SCRIPT_DIR}/.." "$(pwd)" "$(dirname "$(pwd)")"; do
   if [ -d "${_c}/templates" ] && [ -d "${_c}/static" ] && [ -f "${_c}/templates/package.json" ]; then
@@ -126,13 +127,23 @@ done
 DEFAULT_BIN_SRC="${REPO_ROOT:-${SCRIPT_DIR}/..}/bin/${APP_NAME}"
 
 # 经 curl|bash 远程执行且不在仓库内时 REPO_ROOT 为空，本地构建产物无法定位，
-# 直接跳转远端 Release 下载（二进制 + 前端资产包），不再误判目录为本地产物。
+# 直接跳转远端 Release 下载对应架构二进制，不再误判目录为本地产物。
 resolve_local_src() {
   local candidates=(
     "${REPO_ROOT:-}/$1"
     "${SCRIPT_DIR:-}/../$1"
     "$(pwd)/$1"
   )
+  # 兼容 CI/发布产物命名：本地存在 bin/fan-reubah_linux_<arch> 时优先
+  local arch
+  arch="$(detect_rel_arch)"
+  if [ -n "${arch}" ]; then
+    candidates+=(
+      "${REPO_ROOT:-}/bin/${APP_NAME}_linux_${arch}"
+      "${SCRIPT_DIR:-}/../bin/${APP_NAME}_linux_${arch}"
+      "$(pwd)/bin/${APP_NAME}_linux_${arch}"
+    )
+  fi
   for c in "${candidates[@]}"; do
     if [ -f "${c}" ]; then
       printf '%s' "${c}"
@@ -205,8 +216,6 @@ ensure_runtime_libs() {
 }
 # ==================================================
 
-FRONTEND_SRC="${REPO_ROOT:-}"
-
 PORT=""
 APP_DIR=""
 BIN_SRC=""
@@ -246,7 +255,7 @@ while [ "$#" -gt 0 ]; do
       printf "%s\n" "${gl_lan}fan-reubah${reset} - ${gl_bai}通用文件转换与图像处理 安装脚本${reset}"
       printf "  %-13s %s\n" "${gl_bai}用法:${reset}" "bash scripts/install.sh [-p PORT] [-a APP_DIR] [-b BIN] [-y]"
       printf "  %-13s %s\n" "${gl_bai}-p, --port${reset}" "监听端口（默认 ${gl_lan}${DEFAULT_PORT}${reset}）"
-      printf "  %-13s %s\n" "${gl_bai}-a, --appdir${reset}" "应用部署目录（模板/静态资源，默认 ${gl_lan}${DEFAULT_APP_DIR}${reset}）"
+      printf "  %-13s %s\n" "${gl_bai}-a, --appdir${reset}" "应用部署目录（默认 ${gl_lan}${DEFAULT_APP_DIR}${reset}；前端资源已内嵌，无需拷贝）"
       printf "  %-13s %s\n" "${gl_bai}-b, --bin${reset}" "二进制源路径（默认 ${gl_lan}${DEFAULT_BIN_SRC}${reset}）"
       printf "  %-13s %s\n" "${gl_bai}-y, --yes${reset}" "免交互，未指定项全部使用默认值"
       printf "  %-13s %s\n" "${gl_bai}-h, --help${reset}" "显示本帮助"
@@ -316,39 +325,7 @@ open_firewall_port() {
   printf "  %s %s\n" "${gl_huang}[提示]${reset}" "未检测到活跃的防火墙（firewalld/ufw/iptables），跳过端口开放。"
 }
 
-ASSETS_TGZ_URL="https://github.com/meimolihan/fan-reubah/releases/latest/download/fan-reubah-assets.tar.gz"
-
-download_frontend_assets() {
-  local tmp
-  tmp="$(mktemp -d)"
-  ok "本地无前端产物，从 GitHub Release 下载前端资产..."
-  curl -fsSL "${ASSETS_TGZ_URL}" -o "${tmp}/assets.tar.gz" \
-    || error "前端资产包下载失败（${ASSETS_TGZ_URL}），请先用 scripts/build-and-push.sh 完整发布"
-  tar -xzf "${tmp}/assets.tar.gz" -C "${tmp}" \
-    || error "前端资产包解压失败"
-  [ -d "${tmp}/templates" ] && [ -d "${tmp}/static" ] \
-    || error "前端资产包缺少 templates/static 目录"
-  FRONTEND_SRC="${tmp}"
-}
-
-ensure_frontend() {
-  # 前端编译产物（static/css 与 static/js）缺失时：
-  #   仓库内 -> 用 npm 构建；远程 -> 从 Release 下载资产包
-  local missing=0
-  [ -d "${FRONTEND_SRC}/static/css" ] || missing=1
-  [ -d "${FRONTEND_SRC}/static/js" ] || missing=1
-
-  if [ "${missing}" = "1" ]; then
-    if [ -n "${FRONTEND_SRC:-}" ] && [ -f "${FRONTEND_SRC}/templates/package.json" ] && command -v npm >/dev/null 2>&1; then
-      ok "检测到前端编译产物缺失，尝试构建前端..."
-      (cd "${FRONTEND_SRC}/templates" && { npm ci --no-audit --no-fund >/dev/null 2>&1 || npm install --no-audit --no-fund >/dev/null 2>&1; } && npm run build >/dev/null)
-      { [ -d "${FRONTEND_SRC}/static/css" ] && [ -d "${FRONTEND_SRC}/static/js" ]; } \
-        || error "前端构建失败，请先运行 scripts/build-and-push.sh 或在安装前完成构建"
-    else
-      download_frontend_assets
-    fi
-  fi
-}
+# 前端资源与 vtracer SVG 引擎已内嵌进自包含二进制，无需单独下载/部署。
 
 [ "$(id -u)" != "0" ] && error "请以 root 身份运行（例如 sudo bash scripts/install.sh）"
 
@@ -456,9 +433,6 @@ if [ ! -f "${BIN_SRC}" ]; then
   ok "已从 GitHub Release 下载二进制（${gl_bai}$(du -h "${TMP_BIN}" | cut -f1)${reset}）"
 fi
 
-# 确保前端编译产物存在（本地安装时自动尝试构建）
-ensure_frontend
-
 if command -v systemctl >/dev/null 2>&1; then
   USE_SYSTEMD="y"
 else
@@ -479,67 +453,17 @@ ok "已安装二进制至 ${gl_bai}${BIN_PATH}${reset}"
 # "error while loading shared libraries" 后反复重启。
 ensure_runtime_libs || true
 
-# ---- SVG 矢量转换引擎（vtracer）----
-deploy_vtracer() {
-  local src="$1"
-  if cp -f "${src}" /usr/local/bin/vtracer && chmod +x /usr/local/bin/vtracer; then
-    ok "已安装 SVG 矢量转换引擎 vtracer（${gl_bai}$(du -h /usr/local/bin/vtracer | cut -f1)${reset}）"
-  fi
-}
-VTRACER_SRC=""
-for c in \
-  "${REPO_ROOT:-}/vtracer/target/release/vtracer" \
-  "${REPO_ROOT:-}/bin/vtracer" \
-  "${SCRIPT_DIR}/../vtracer/target/release/vtracer" \
-  "$(pwd)/vtracer/target/release/vtracer" \
-  "${SCRIPT_DIR}/../bin/vtracer"; do
-  if [ -x "${c}" ]; then VTRACER_SRC="${c}"; break; fi
-done
-
-vtracer_ready() { [ -x /usr/local/bin/vtracer ] || command -v vtracer >/dev/null 2>&1; }
-
-if [ -n "${VTRACER_SRC}" ]; then
-  deploy_vtracer "${VTRACER_SRC}"
-fi
-
-if ! vtracer_ready; then
-  # 已安装则跳过；否则依次尝试：Release 预编译 -> 仓库内 cargo 编译
-  VTRACER_ARCH="$(detect_rel_arch)"
-  if [ -n "${VTRACER_ARCH}" ]; then
-    VTRACER_URL="https://github.com/meimolihan/fan-reubah/releases/latest/download/vtracer_linux_${VTRACER_ARCH}"
-    printf "  %s\n" "${gl_huang}[提示]${reset} 未找到 vtracer，从 GitHub Release 下载预编译引擎..."
-    TMP_VTRACER="$(mktemp)"
-    if curl -fsSL "${VTRACER_URL}" -o "${TMP_VTRACER}"; then
-      chmod +x "${TMP_VTRACER}"
-      deploy_vtracer "${TMP_VTRACER}"
-      rm -f "${TMP_VTRACER}"
-    else
-      printf "  %s\n" "${gl_huang}[提示]${reset} Release 下载失败，尝试本地 cargo 编译..."
-      if [ -n "${REPO_ROOT:-}" ] && [ -d "${REPO_ROOT}/vtracer" ] && command -v cargo >/dev/null 2>&1; then
-        if (cd "${REPO_ROOT}/vtracer" && cargo build --release -p vtracer-cli >/dev/null 2>&1); then
-          deploy_vtracer "${REPO_ROOT}/vtracer/target/release/vtracer"
-        else
-          printf "  %s\n" "${gl_huang}[提示]${reset} vtracer 编译失败，SVG 矢量转换功能不可用（不影响其他功能）"
-        fi
-      else
-        printf "  %s\n" "${gl_huang}[提示]${reset} vtracer 不可用，SVG 矢量转换功能受限（不影响其他功能）。"
-      fi
-    fi
-  else
-    printf "  %s\n" "${gl_huang}[提示]${reset} 不支持的架构，无法下载预编译 vtracer；SVG 矢量转换功能不可用（不影响其他功能）。"
-    printf "  %s\n" "${gl_hui}    可先运行 bash scripts/build-vtracer.sh 编译安装。${reset}"
-  fi
+# 前端页面与 vtracer SVG 矢量引擎已内嵌进单文件二进制，无需额外部署。
+# 兼容本地源码安装：若在仓库内使用未内嵌资源的旧二进制，仍复制前端资源
+# 作为回退（自包含二进制在生产启动时优先使用内嵌资源，不受影响）。
+if [ -n "${REPO_ROOT:-}" ] && [ -d "${REPO_ROOT}/templates" ] && [ -d "${REPO_ROOT}/static" ]; then
+  cp -rf "${REPO_ROOT}/templates" "${APP_DIR}/"
+  cp -rf "${REPO_ROOT}/static" "${APP_DIR}/"
+  rm -rf "${APP_DIR}/templates/node_modules"
 fi
 
 ok "正在部署应用目录 ${gl_lan}${APP_DIR}${reset}"
 mkdir -p "${APP_DIR}"
-if [ -n "${FRONTEND_SRC:-}" ] && [ -d "${FRONTEND_SRC}/templates" ]; then
-  cp -rf "${FRONTEND_SRC}/templates" "${APP_DIR}/"
-  rm -rf "${APP_DIR}/templates/node_modules"
-fi
-if [ -n "${FRONTEND_SRC:-}" ] && [ -d "${FRONTEND_SRC}/static" ]; then
-  cp -rf "${FRONTEND_SRC}/static" "${APP_DIR}/"
-fi
 chmod -R a+rX "${APP_DIR}"
 
 # ---- write install record ----

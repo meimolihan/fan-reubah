@@ -7,7 +7,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/meimolihan/fan-reubah/internal/assets"
 )
 
 // SVGTimeout bounds a single vtracer invocation. Large scans can take a while.
@@ -32,16 +35,77 @@ type SVGVectorOptions struct {
 	Adaptive        bool
 }
 
-// ResolveVTracer locates the vtracer binary, honouring the VTRACER_PATH
-// environment variable first, then falling back to a PATH lookup.
+// ResolveVTracer locates the vtracer engine. Priority: VTRACER_PATH env var,
+// the embedded (built-in) engine, then a PATH lookup. The embedded engine is
+// extracted once to a cache directory and reused across requests.
 func ResolveVTracer() string {
 	if p := os.Getenv("VTRACER_PATH"); p != "" {
 		return p
+	}
+	if bin := assets.VtracerBinary(); len(bin) > 0 {
+		vtracerOnce.Do(func() {
+			vtracerPath, vtracerErr = extractVTracer(bin)
+		})
+		if vtracerErr == nil && vtracerPath != "" {
+			return vtracerPath
+		}
 	}
 	if p, err := exec.LookPath("vtracer"); err == nil {
 		return p
 	}
 	return ""
+}
+
+var (
+	vtracerOnce sync.Once
+	vtracerPath string
+	vtracerErr  error
+)
+
+// extractVTracer writes the embedded engine to disk and returns its path.
+func extractVTracer(bin []byte) (string, error) {
+	var dirs []string
+	if c, err := os.UserCacheDir(); err == nil && c != "" {
+		dirs = append(dirs, filepath.Join(c, "fan-reubah"))
+	}
+	dirs = append(dirs, "")
+
+	var lastErr error
+	for _, dir := range dirs {
+		if dir == "" {
+			tmp, err := os.MkdirTemp("", "fan-reubah-vtracer-*")
+			if err != nil {
+				lastErr = err
+				continue
+			}
+			dir = tmp
+		} else if err := os.MkdirAll(dir, 0o755); err != nil {
+			lastErr = err
+			continue
+		}
+		path := filepath.Join(dir, "vtracer")
+		if info, err := os.Stat(path); err == nil && info.Size() == int64(len(bin)) {
+			return path, nil
+		}
+		if err := writeEmbeddedBinary(bin, path); err == nil {
+			return path, nil
+		} else {
+			lastErr = err
+		}
+	}
+	return "", fmt.Errorf("failed to extract embedded vtracer engine: %w", lastErr)
+}
+
+func writeEmbeddedBinary(bin []byte, path string) error {
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, bin, 0o755); err != nil {
+		return err
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		os.Remove(tmp)
+		return err
+	}
+	return nil
 }
 
 // ConvertImageToSVG runs the vtracer binary over the raster image at inputPath

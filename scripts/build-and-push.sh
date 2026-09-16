@@ -3,7 +3,7 @@
 # fan-reubah - 发布脚本（触发 GitHub Actions 自动构建）
 # 不在本地编译任何产物：仅更新版本号、推送代码并打 v 开头 tag。
 # 推送 tag 后由 .github/workflows/release.yml 自动完成全部编译与发布：
-#   amd64/arm64 的 fan-reubah + vtracer 二进制、前端资产打包、创建 GitHub Release。
+#   amd64/arm64 的自包含单文件 fan-reubah 二进制（已内嵌前端资源与 vtracer 引擎）、创建 GitHub Release。
 #
 # Usage:
 #   TAG(必填) 形如 v1.0.0; --yes 免交互
@@ -13,6 +13,104 @@ set -euo pipefail
 info() { echo -e "\033[32m>>> $*\033[0m"; }
 warn() { echo -e "\033[33m!!! $*\033[0m"; }
 error() { echo -e "\033[31mERROR: $*\033[0m"; exit 1; }
+
+list_color_init() {
+    export gl_hui=$'\033[38;5;59m'
+    export gl_hong=$'\033[38;5;9m'
+    export gl_lv=$'\033[38;5;10m'
+    export gl_huang=$'\033[38;5;11m'
+    export gl_lan=$'\033[38;5;32m'
+    export gl_bai=$'\033[38;5;15m'
+    export gl_zi=$'\033[38;5;13m'
+    export gl_bufan=$'\033[38;5;14m'
+    export reset=$'\033[0m'
+}
+list_color_init
+
+
+get_gh_run_info() {
+    gh run list --workflow=release.yml --limit 1 --json status,displayTitle,headBranch,event,databaseId,startedAt
+}
+
+calc_elapsed() {
+    local start_iso="$1"
+    local start_ts
+    start_ts=$(date -d "${start_iso}" +%s 2>/dev/null)
+    if [[ -z "$start_ts" ]]; then
+        echo "时间解析失败"
+        return
+    fi
+    local now_ts=$(date +%s)
+    local diff=$(( now_ts - start_ts ))
+
+    if (( diff < 60 )); then
+        echo "${diff} 秒"
+    elif (( diff < 3600 )); then
+        echo "$((diff / 60)) 分 $((diff % 60)) 秒"
+    else
+        echo "$((diff / 3600)) 时 $(((diff % 3600)/60)) 分"
+    fi
+}
+
+beautify_gh_run() {
+    echo -e ""
+    echo -e "${gl_zi}>>> GitHub Actions Release 流水线信息${gl_bai}"
+    echo -e "${gl_bufan}————————————————————————————————————————————————${gl_bai}"
+
+    json_data=$(get_gh_run_info)
+    if [[ -z "$json_data" || "$json_data" == "[]" ]]; then
+        echo -e "${gl_hong}[错误] 未找到 release.yaml 流水线运行记录${reset}"
+        echo -e "${gl_bai}检查：gh auth status 确认gh已登录，仓库目录正确${reset}"
+        echo -e "${gl_bufan}————————————————————————————————————————————————${gl_bai}"
+    fi
+
+    status=$(echo "$json_data" | jq -r '.[0].status')
+    title=$(echo "$json_data" | jq -r '.[0].displayTitle')
+    branch=$(echo "$json_data" | jq -r '.[0].headBranch')
+    event=$(echo "$json_data" | jq -r '.[0].event')
+    run_id=$(echo "$json_data" | jq -r '.[0].databaseId')
+    started_at=$(echo "$json_data" | jq -r '.[0].startedAt')
+
+    elapsed=$(calc_elapsed "$started_at")
+
+    case "$status" in
+        in_progress)
+            status_text="${gl_huang}运行中${reset}"
+            ;;
+        completed)
+            conclusion=$(gh run view "$run_id" --json conclusion | jq -r '.conclusion')
+            case "$conclusion" in
+                success) status_text="${gl_lv}成功${reset}";;
+                failure) status_text="${gl_hong}失败${reset}";;
+                cancelled) status_text="${gl_hui}已取消${reset}";;
+                skipped) status_text="${gl_huang}已跳过${reset}";;
+                *) status_text="${gl_huang}已完成(${conclusion})${reset}";;
+            esac
+            ;;
+        *)
+            status_text="${gl_hui}${status}${reset}"
+            ;;
+    esac
+
+    printf "%-14s%s\n" "${gl_hui}[运行状态]：${reset}" "$status_text"
+    printf "%-14s%s\n" "${gl_hui}[提交标题]：${reset}" "${gl_huang}$title${reset}"
+    printf "%-14s%s\n" "${gl_hui}[触发分支]：${reset}" "${gl_lan}$branch${reset}"
+    printf "%-14s%s\n" "${gl_hui}[触发事件]：${reset}" "${gl_bai}$event${reset}"
+    printf "%-14s%s\n" "${gl_hui}[Run ID]：${reset}" "${gl_bufan}$run_id${reset}"
+    printf "%-14s%s\n" "${gl_hui}[已耗时]：${reset}" "${gl_bai}$elapsed${reset}"
+
+    echo -e "${gl_bufan}————————————————————————————————————————————————${gl_bai}"
+    echo -e ""
+    echo -e "${gl_huang}>>> 快捷操作命令${gl_bai}"
+    echo -e "${gl_bufan}————————————————————————————————————————————————${gl_bai}"
+    echo -e "${gl_lv}实时跟踪流水线：${reset}gh run watch $run_id"
+    echo -e "${gl_lv}查看详细信息：${reset}gh run view $run_id"
+    echo -e "${gl_lv}查看完整日志：${reset}gh run view $run_id --log"
+    echo -e "${gl_lv}查看失败日志：${reset}gh run view $run_id --log-failed"
+    echo -e "${gl_lv}取消本次构建：${reset}gh run cancel $run_id"
+    echo -e "${gl_lv}重新运行流水线：${reset}gh run rerun $run_id"
+    echo -e "${gl_bufan}————————————————————————————————————————————————${gl_bai}"
+}
 
 YES_MODE=0
 TAG=""
@@ -81,4 +179,6 @@ git push origin "${TAG}"
 info "✅ 已推送 tag ${TAG}，GitHub Actions 将自动完成编译与 Release 创建"
 
 info "查看发布结果: gh release view ${TAG}"
-info "远程一键安装：curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/install.sh | bash -s -- -p 8081"
+echo -e "${gl_bai}远程安装命令： ${gl_lv}curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/install.sh | bash -s -- -p 7567 -a /var/lib/fan-reubah${gl_bai}"
+
+beautify_gh_run

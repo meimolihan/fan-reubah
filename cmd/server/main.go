@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/meimolihan/fan-reubah/internal/assets"
 	"github.com/meimolihan/fan-reubah/internal/handlers"
 )
 
@@ -91,10 +93,10 @@ func setupRouter() *mux.Router {
 	r.Use(securityHeadersMiddleware)
 	r.Use(recoveryMiddleware)
 
-	// Serve static files with caching
-	fileServer := http.FileServer(http.Dir("static"))
+	// Serve static files with caching (embedded in the binary; falls back to
+	// the on-disk "static" dir when running from a source checkout).
 	r.PathPrefix("/static/").Handler(
-		http.StripPrefix("/static/", fileServer),
+		http.StripPrefix("/static/", staticServer()),
 	)
 
 	// Routes
@@ -155,4 +157,15 @@ func getPort() string {
 		return ":" + port
 	}
 	return ":8081"
+}
+
+// staticServer serves the bundled frontend static files, or the on-disk
+// "static" directory when the binary has no embedded assets.
+func staticServer() http.Handler {
+	if sub, err := fs.Sub(assets.Web(), "web/static"); err == nil {
+		if _, err := fs.Stat(sub, "css/styles.css"); err == nil {
+			return http.FileServer(http.FS(sub))
+		}
+	}
+	return http.FileServer(http.Dir("static"))
 }

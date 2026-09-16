@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/meimolihan/fan-reubah/internal/assets"
 )
 
 // fan-reubah 安装/运行约定（与 scripts/install.sh、scripts/uninstall.sh 保持一致）。
@@ -72,10 +74,12 @@ func rbStatus() int {
 	cliSection("路径")
 	cliKV("应用目录", rbDetectAppDir(rbDefaultAppDir))
 	cliKV("安装记录", rbRecordFile)
-	if _, err := os.Stat(rbVtracerBin); err == nil {
-		cliKV("vtracer 引擎", rbVtracerBin)
+	if assets.HasVtracer() {
+		cliKV("SVG 矢量引擎", "内置 vtracer（已嵌入单文件二进制）")
+	} else if _, err := os.Stat(rbVtracerBin); err == nil {
+		cliKV("SVG 矢量引擎", rbVtracerBin)
 	} else {
-		cliKV("vtracer 引擎", "未安装")
+		cliKV("SVG 矢量引擎", "未安装")
 	}
 	if exe, err := os.Executable(); err == nil {
 		cliKV("当前二进制", exe)

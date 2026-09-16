@@ -57,6 +57,13 @@ RUN go mod download
 
 # 复制应用源码并编译（go build 缓存挂载，增量编译更高效）
 COPY . ./
+
+# 将前端产物与 vtracer 引擎写入 go:embed 目录，产出"自包含单文件"二进制
+ARG TARGETARCH
+COPY --from=frontend /out/static /app/internal/assets/web/static
+COPY --from=frontend /out/templates /app/internal/assets/web/templates
+COPY --from=vtracer /vtracer/target/release/vtracer /app/internal/assets/engine/vtracer_linux_${TARGETARCH}
+
 RUN --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=1 go build -ldflags="-s -w" -o fan-reubah ./cmd/server
 
@@ -79,11 +86,8 @@ RUN apk add --no-cache \
     libreoffice \
  && mkdir -p /tmp/.cache /tmp/.config /tmp/.local
 
-# 复制二进制、vtracer 引擎与前端产物
+# 复制二进制（页面、静态资源与 vtracer 引擎均已内嵌其中）
 COPY --from=builder /app/fan-reubah /app/fan-reubah
-COPY --from=vtracer /vtracer/target/release/vtracer /usr/local/bin/vtracer
-COPY --from=frontend /out/static ./static
-COPY --from=frontend /out/templates ./templates
 
 # 创建非 root 用户
 RUN addgroup -g 1000 appgroup && \

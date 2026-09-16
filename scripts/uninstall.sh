@@ -119,7 +119,7 @@ usage() {
     "" \
     "选项:" \
     "  -y, --yes        免确认，自动同意卸载" \
-    "      --purge      卸载时同时删除应用目录（模板与静态资源）" \
+    "      --purge      卸载时同时删除应用目录" \
     "      --keep-appdir 卸载时保留应用目录" \
     "  -q, --quiet      静默模式，仅输出关键信息" \
     "  -h, --help       显示帮助" \
@@ -284,7 +284,7 @@ if [ -n "$APP_DIR" ] && [ -d "$APP_DIR" ]; then
     rm -rf "$APP_DIR"
     ok "已删除应用目录 ${gl_bai}${APP_DIR}${reset}"
   elif [ -t 0 ]; then
-    read -r -p "${gl_huang}是否删除应用目录 ${APP_DIR}？（模板与静态资源）${gl_bai}[Y/n]${reset}: " DEL_APP
+    read -r -p "${gl_huang}是否删除应用目录 ${APP_DIR}？${gl_bai}[Y/n]${reset}: " DEL_APP
     case "$DEL_APP" in
       n|N|no|NO)
         skip "已保留应用目录 ${gl_bai}${APP_DIR}${reset}"

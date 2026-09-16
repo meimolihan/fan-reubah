@@ -30,14 +30,6 @@ func cliWarn(f string, a ...interface{}) {
 	fmt.Printf("  %s %s\n", cliPaintColor("[警告]", cliYellow), fmt.Sprintf(f, a...))
 }
 
-func cliHext(f string, a ...interface{}) {
-	fmt.Printf("  %s %s\n", cliPaintColor("[提示]", cliCyan), fmt.Sprintf(f, a...))
-}
-
-func cliOK(f string, a ...interface{}) {
-	fmt.Printf("  %s %s\n", cliPaintColor(">>>", cliGreen), fmt.Sprintf(f, a...))
-}
-
 func cliDone(f string, a ...interface{}) {
 	fmt.Printf("  %s %s\n", cliPaintColor("✔", cliGreen), fmt.Sprintf(f, a...))
 }

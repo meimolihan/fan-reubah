@@ -6,3 +6,10 @@ static/css/*.css
 static/js/*.js
 # Rust 构建产物
 vtracer/target/
+
+# go:embed 生成的资源（由 scripts/prepare-embed.sh / CI / Docker 写入）；
+# KEEP 占位文件保留在仓库中，保证无资源时模块也能编译。
+internal/assets/web/*
+internal/assets/engine/*
+!internal/assets/web/KEEP
+!internal/assets/engine/KEEP
