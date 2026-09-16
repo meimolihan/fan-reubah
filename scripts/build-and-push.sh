@@ -197,7 +197,7 @@ grep -n '"version"' "${BUMP_FILE}"
 
 # ===================== Git 提交 & Tag =====================
 info "提交版本变更"
-git add templates/package.json templates/package-lock.json
+git add .
 git commit -m "chore: bump version to ${TARGET_VER}" || info "无版本文件变更，跳过提交"
 git push origin main
 
