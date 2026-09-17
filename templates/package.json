@@ -1,6 +1,6 @@
 {
   "name": "fan-reubah",
-  "version": "单一流水线链式整合，添加同步到 CNB 仓库",
+  "version": "本次发布的说明文字",
   "devDependencies": {
     "esbuild": "^0.24.0",
     "tailwindcss": "^3.4.15"
