@@ -143,14 +143,23 @@ beautify_gh_run() {
 
 YES_MODE=0
 TAG=""
+MSG=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --yes) YES_MODE=1; shift ;;
+        -m|--message)
+            shift
+            [ -n "${1:-}" ] || error "缺少 -m/--message 的备注内容"
+            MSG="$1"
+            shift
+            ;;
         *) TAG="$1"; shift ;;
     esac
 done
 
-[[ -z "${TAG}" ]] && error "缺少TAG参数，示例: $0 v1.0.0 --yes"
+[[ -z "${TAG}" ]] && error "缺少TAG参数，示例: $0 v1.0.0 --yes -m \"备注\""
+
+[[ "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || error "TAG 格式应为 vX.Y.Z，例如 v1.0.0（当前: ${TAG}）"
 
 cd "$(dirname "$0")/.."
 TARGET_VER="${TAG#v}"
@@ -194,6 +203,14 @@ fi
 
 info "版本号确认:"
 grep -n '"version"' "${BUMP_FILE}"
+
+# ===================== 写发版备注 =====================
+info "写入发版备注 RELEASE_NOTES.md"
+{
+  if [ -n "${MSG}" ]; then
+    printf '%s\n' "${MSG}"
+  fi
+} > RELEASE_NOTES.md
 
 # ===================== Git 提交 & Tag =====================
 info "提交版本变更"
