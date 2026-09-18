@@ -508,8 +508,11 @@ sep_line
 section "安装程序"
 ok "正在安装 ${gl_bai}${APP_NAME}${reset} 二进制 ${gl_hong}.${gl_huang}.${gl_lv}.${gl_bai}"
 
-cp -f "${BIN_SRC}" "${BIN_PATH}"
-chmod +x "${BIN_PATH}"
+# 原子替换：直接 cp -f 覆盖正在运行的二进制会触发 "Text file busy"（ETXTBSY）。
+# 先写入同目录临时文件再 mv 覆盖目录项，运行中的进程继续持有旧 inode，升级不再失败。
+cp -f "${BIN_SRC}" "${BIN_PATH}.new"
+chmod +x "${BIN_PATH}.new"
+mv -f "${BIN_PATH}.new" "${BIN_PATH}"
 ok "已安装二进制至 ${gl_bai}${BIN_PATH}${reset}"
 
 # 检测并自动安装缺失的动态运行库（libwebp/libheif 等），避免服务启动时报
