@@ -1,1 +1,1 @@
-单一流水线链式整合，添加同步到 CNB 仓库
+修复 fan-reubah --version 命令
