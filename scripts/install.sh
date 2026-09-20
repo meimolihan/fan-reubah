@@ -305,6 +305,11 @@ while [ "$#" -gt 0 ]; do
       [ -n "${1:-}" ] || error "缺少 -a/--appdir 的值"
       APP_DIR="$1"
       ;;
+    -d|--data)
+      shift
+      [ -n "${1:-}" ] || error "缺少 -d/--data 的值"
+      APP_DIR="$1"
+      ;;
     -b|--bin)
       shift
       [ -n "${1:-}" ] || error "缺少 -b/--bin 的值"
@@ -322,7 +327,7 @@ while [ "$#" -gt 0 ]; do
       printf "  %-13s %s\n" "${gl_bai}-b, --bin${reset}" "二进制源路径（默认 ${gl_lan}${DEFAULT_BIN_SRC}${reset}）"
       printf "  %-13s %s\n" "${gl_bai}-y, --yes${reset}" "免交互，未指定项全部使用默认值"
       printf "  %-13s %s\n" "${gl_bai}-h, --help${reset}" "显示本帮助"
-      printf "%s\n" "${gl_hui}指定任意参数即进入静默安装；不带参数则为交互式安装。${reset}"
+      printf "%s\n" "${gl_hui}指定的项不再询问；未指定项在交互终端会逐一提示，-y 或非 TTY 模式则直接使用默认值。${reset}"
       printf "%s\n" "${gl_hui}未指定 -b 且本地无构建产物时，自动从 GitHub Release 下载对应架构二进制。${reset}"
       exit 0
       ;;
@@ -403,23 +408,15 @@ printf "  %-14s %s\n" "${gl_lan}程序${reset}" "${gl_bai}${APP_NAME}${reset}"
 sep_line
 
 # ---- silent install detection ----
-SILENT="n"
+# 校验参数合法性（SILENT 变量本应控制静默，但从未被使用，此处只保留校验逻辑）
 if [ -n "${PORT}" ]; then
   case "${PORT}" in
     ''|*[!0-9]*) error "PORT 无效（需为 1‑65535 的数字）: ${PORT}" ;;
     *) [ "${PORT}" -ge 1 ] && [ "${PORT}" -le 65535 ] || error "PORT 超出范围（1‑65535）: ${PORT}" ;;
   esac
-  SILENT="y"
 fi
 if [ -n "${APP_DIR}" ]; then
   [[ "${APP_DIR}" = /* ]] || error "APP_DIR 必须是绝对路径: ${APP_DIR}"
-  SILENT="y"
-fi
-if [ -n "${BIN_SRC}" ]; then
-  SILENT="y"
-fi
-if [ ! -t 0 ]; then
-  SILENT="y"
 fi
 
 section "配置参数"
@@ -519,6 +516,9 @@ ok "已安装二进制至 ${gl_bai}${BIN_PATH}${reset}"
 # "error while loading shared libraries" 后反复重启。
 ensure_runtime_libs || true
 
+ok "正在部署应用目录 ${gl_lan}${APP_DIR}${reset}"
+mkdir -p "${APP_DIR}"
+
 # 前端页面与 vtracer SVG 矢量引擎已内嵌进单文件二进制，无需额外部署。
 # 兼容本地源码安装：若在仓库内使用未内嵌资源的旧二进制，仍复制前端资源
 # 作为回退（自包含二进制在生产启动时优先使用内嵌资源，不受影响）。
@@ -528,8 +528,6 @@ if [ -n "${REPO_ROOT:-}" ] && [ -d "${REPO_ROOT}/templates" ] && [ -d "${REPO_RO
   rm -rf "${APP_DIR}/templates/node_modules"
 fi
 
-ok "正在部署应用目录 ${gl_lan}${APP_DIR}${reset}"
-mkdir -p "${APP_DIR}"
 chmod -R a+rX "${APP_DIR}"
 
 # ---- write install record ----

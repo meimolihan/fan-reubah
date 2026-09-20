@@ -17,7 +17,7 @@ import (
 )
 
 // buildVersion 由发布构建通过 -ldflags -X main.buildVersion=... 注入；本地未注入时使用默认值。
-var buildVersion = "1.0.4"
+var buildVersion = "1.0.5"
 
 func main() {
 	// 子命令：fan-reubah status | uninstall | -version

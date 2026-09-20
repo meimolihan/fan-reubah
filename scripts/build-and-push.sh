@@ -212,10 +212,27 @@ info "写入发版备注 RELEASE_NOTES.md"
     printf '\n'
   fi
   printf 'docker pull mobufan/fan-reubah:latest\n'
-  printf 'docker pull mobufan/fan-reubah:%s\n' "${TAG}"
   printf '\n'
+  printf '```bash\n'
+  printf 'docker pull mobufan/fan-reubah:%s\n' "${TAG}"
+  printf '```\n'
+  printf '\n'
+  printf '```bash\n'
   printf 'docker pull ghcr.io/meimolihan/fan-reubah:latest\n'
+  printf '```\n'
+  printf '```bash\n'
   printf 'docker pull ghcr.io/meimolihan/fan-reubah:%s\n' "${TAG}"
+  printf '```\n'
+  printf '\n'
+  printf '## 二进制安装\n'
+  printf '```bash\n'
+  printf 'bash -c "$(curl -sSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/install.sh)" -p 8081 -a /var/lib/fan-reubah\n'
+  printf '```\n'
+  printf '\n'
+  printf '## 二进制卸载\n'
+  printf '```bash\n'
+  printf 'bash -c "$(curl -sSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/uninstall.sh)" -y --purge\n'
+  printf '```\n'
 } > RELEASE_NOTES.md
 
 # ===================== Git 提交 & Tag =====================

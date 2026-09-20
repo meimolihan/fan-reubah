@@ -1,6 +1,9 @@
 templates/node_modules/
 
+# 构建/运行产物（不入库）
 bin/
+/server
+tmp/
 
 static/css/*.css
 static/js/*.js

@@ -19,9 +19,9 @@ func rbUninstall(args []string) int {
 		switch a {
 		case "-y", "--yes":
 			yes = true
-		case "--purge", "--delete-data":
+		case "--purge", "--delete-appdir", "--delete-data":
 			purge = true
-		case "--keep-data":
+		case "--keep-appdir", "--keep-data":
 			keep = true
 		case "-h", "--help":
 			rbUninstallUsage()
@@ -145,7 +145,8 @@ func rbUninstallUsage() {
 		"选项:",
 		"    -y, --yes        免确认，静默卸载（默认保留应用目录）",
 		"    --purge          卸载时同时删除应用目录",
-		"    --keep-data      卸载时保留应用目录",
+		"    --delete-appdir / --delete-data  同 --purge",
+		"    --keep-appdir / --keep-data     卸载时保留应用目录（默认）",
 		"    -h, --help       显示帮助",
 		"",
 		"示例:",
@@ -154,6 +155,23 @@ func rbUninstallUsage() {
 	} {
 		fmt.Println(cliPaintColor(line, cliWhite))
 	}
+}
+
+// rbVtracerPkgOwned 判断该文件是否由系统软件包管理（dpkg/rpm）。
+// 现行版本引擎已内嵌进单文件二进制，/usr/local/bin/vtracer 仅可能是旧版遗留或
+// 用户自行安装的工具；若属于系统软件包则不予删除，避免误删用户数据。
+func rbVtracerPkgOwned() bool {
+	if cmd, err := exec.LookPath("dpkg"); err == nil {
+		if exec.Command(cmd, "-S", rbVtracerBin).Run() == nil {
+			return true
+		}
+	}
+	if cmd, err := exec.LookPath("rpm"); err == nil {
+		if exec.Command(cmd, "-qf", rbVtracerBin).Run() == nil {
+			return true
+		}
+	}
+	return false
 }
 
 func rbMSRemoveBinary() {
@@ -172,7 +190,9 @@ func rbMSRemoveBinary() {
 		}
 	}
 	if _, err := os.Lstat(rbVtracerBin); err == nil {
-		if err := os.Remove(rbVtracerBin); err != nil {
+		if rbVtracerPkgOwned() {
+			cliWarn("检测到 %s 由系统软件包管理（dpkg/rpm），跳过删除。", rbVtracerBin)
+		} else if err := os.Remove(rbVtracerBin); err != nil {
 			cliWarn("删除 vtracer 引擎 %s 失败: %v", rbVtracerBin, err)
 		} else {
 			cliDone("已删除 vtracer 引擎 %s", rbVtracerBin)

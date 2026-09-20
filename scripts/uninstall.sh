@@ -120,7 +120,8 @@ usage() {
     "选项:" \
     "  -y, --yes        免确认，自动同意卸载" \
     "      --purge      卸载时同时删除应用目录" \
-    "      --keep-appdir 卸载时保留应用目录" \
+    "      --delete-appdir / --delete-data  同 --purge" \
+    "      --keep-appdir / --keep-data     卸载时保留应用目录（默认）" \
     "  -q, --quiet      静默模式，仅输出关键信息" \
     "  -h, --help       显示帮助" \
     "" \
@@ -138,8 +139,8 @@ esac
 while [ $# -gt 0 ]; do
   case "$1" in
     -y|--yes) UNINSTALL_YES=1; shift ;;
-    --purge|--delete-appdir) DELETE_APPDIR=1; shift ;;
-    --keep-appdir) KEEP_APPDIR=1; shift ;;
+    --purge|--delete-appdir|--delete-data) DELETE_APPDIR=1; shift ;;
+    --keep-appdir|--keep-data) KEEP_APPDIR=1; shift ;;
     -q|--quiet) QUIET=1; shift ;;
     -h|--help) usage ;;
     *) error "未知参数: $1，使用 -h 查看帮助" ;;
@@ -177,6 +178,19 @@ find_app_pids() {
     [ "$(basename "$exe")" = "${APP_NAME}" ] || continue
     echo "$pid"
   done
+}
+
+# 判断该文件是否由系统软件包管理（dpkg/rpm）。
+# 现行版本引擎已内嵌进单文件二进制，/usr/local/bin/vtracer 仅可能是旧版遗留或
+# 用户自行安装的工具；若属于系统软件包则不予删除，避免误删用户数据。
+vtracer_is_pkg_owned() {
+  if command -v dpkg >/dev/null 2>&1 && dpkg -S "${VTRACER_BIN}" >/dev/null 2>&1; then
+    return 0
+  fi
+  if command -v rpm >/dev/null 2>&1 && rpm -qf "${VTRACER_BIN}" >/dev/null 2>&1; then
+    return 0
+  fi
+  return 1
 }
 
 close_firewall_port() {
@@ -268,8 +282,12 @@ else
   skip "未找到二进制文件 ${gl_bai}${BIN_PATH}${reset}，跳过。"
 fi
 if [ -f "${VTRACER_BIN}" ]; then
-  rm -f "${VTRACER_BIN}"
-  ok "已删除 SVG 转换引擎 ${gl_bai}${VTRACER_BIN}${reset}"
+  if vtracer_is_pkg_owned; then
+    skip "检测到 ${gl_bai}${VTRACER_BIN}${reset} 由系统软件包管理（dpkg/rpm），跳过删除。"
+  else
+    rm -f "${VTRACER_BIN}"
+    ok "已删除 SVG 转换引擎 ${gl_bai}${VTRACER_BIN}${reset}"
+  fi
 else
   skip "未找到 ${gl_bai}${VTRACER_BIN}${reset}，跳过。"
 fi

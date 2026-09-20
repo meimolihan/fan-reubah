@@ -11,8 +11,9 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    environment:
-      - HTTP_PROXY=http://10.10.10.252:7893
-      - HTTPS_PROXY=http://10.10.10.252:7893
-      - NO_PROXY=172.17.0.1,127.0.0.1,localhost,10.10.10.0/24
+    # 如部署环境需走代理，可在此按需配置（勿提交内网地址）：
+    # environment:
+    #   - HTTP_PROXY=http://<proxy-host>:<port>
+    #   - HTTPS_PROXY=http://<proxy-host>:<port>
+    #   - NO_PROXY=127.0.0.1,localhost
     restart: unless-stopped

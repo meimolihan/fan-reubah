@@ -73,8 +73,8 @@ curl -fsSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/
 | 参数 | 说明 |
 | --- | --- |
 | `-y` / `--yes` | 免确认，自动同意卸载 |
-| `--purge` / `--delete-appdir` | 卸载时同时删除应用目录 |
-| `--keep-appdir` | 保留应用目录（非交互模式下默认即保留） |
+| `--purge` / `--delete-appdir` / `--delete-data` | 卸载时同时删除应用目录 |
+| `--keep-appdir` / `--keep-data` | 保留应用目录（非交互模式下默认即保留） |
 | `-q` / `--quiet` | 静默模式，仅输出关键信息 |
 
 脚本会自动按 `/proc` 终止残留的 fan-reubah 进程，并关闭 install.sh 开放过的防火墙端口（firewalld/ufw/iptables）。
@@ -157,8 +157,7 @@ fan-reubah/
 ├── scripts/                      # 运维脚本（安装/卸载/内嵌资源/发布）
 ├── .github/
 │   └── workflows/                # CI 工作流
-│       ├── release.yml           # tag 触发：交叉编译后发布 2 个自包含单文件
-│       └── build.yml             # main/tag 触发：构建多架构 Docker 镜像
+│       └── release.yml           # workflow_dispatch 手动触发（就让脚本调用）：单文件发布 + 多架构 Docker 镜像
 ├── Dockerfile                    # 多阶段镜像构建（前端 + vtracer + Go + 精简运行时）
 ├── docker-compose.yml            # 本地 Docker 启动编排
 ├── go.mod / go.sum               # Go 模块依赖
@@ -209,10 +208,9 @@ fan-reubah/
 
 | 文件 | 说明 |
 | --- | --- |
-| `.github/workflows/release.yml` | 推送 `v*` tag 触发：Node 构建前端 + cargo 按 amd64/arm64 交叉编译 vtracer + Go 交叉编译 → 产出 2 个自包含单文件（`fan-reubah_linux_{amd64,arm64}`）并创建 Release |
-| `.github/workflows/build.yml` | `main`/`v*`/PR 触发：buildx 多架构构建并推送 Docker 镜像（`linux/amd64`、`linux/arm64`） |
+| `.github/workflows/release.yml` | `build-and-push.sh` 调用（`workflow_dispatch` 传 tag）触发：Node 构建前端 + cargo 按 amd64/arm64 交叉编译 vtracer + Go 交叉编译 → 产出 2 个自包含单文件（`fan-reubah_linux_{amd64,arm64}`）并创建 Release → 随后 buildx 多架构构建推送 Docker 镜像至 Docker Hub / GHCR，并同步 CNB 镜像仓库（`linux/amd64`、`linux/arm64`） |
 | `Dockerfile` | 多阶段构建：`frontend`（npm 构建）→ `vtracer`（cargo 编译）→ `builder`（写入 go:embed 目录后编译单文件）→ 运行时镜像仅含二进制 + LibreOffice |
-| `docker-compose.yml` | 本地一键启动（8081:8081），内置代理环境变量示例 |
+| `docker-compose.yml` | 本地一键启动（8081:8081），内置代理环境变量注释示例（按需启用） |
 
 ### 前端源码
 

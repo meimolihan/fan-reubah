@@ -65,7 +65,8 @@ COPY --from=frontend /out/templates /app/internal/assets/web/templates
 COPY --from=vtracer /vtracer/target/release/vtracer /app/internal/assets/engine/vtracer_linux_${TARGETARCH}
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=1 go build -ldflags="-s -w" -o fan-reubah ./cmd/server
+    V=$(sed -n 's/^  "version": "\([^"]*\)",/\1/p' templates/package.json 2>/dev/null || true) \
+    && CGO_ENABLED=1 go build -ldflags="-s -w -X main.buildVersion=${V:-dev}" -o fan-reubah ./cmd/server
 
 # ============================================================
 # Stage 4: 运行时（libreoffice 转换文档、curl 用于健康检查）
