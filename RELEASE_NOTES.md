@@ -1,14 +1,16 @@
+优化构建脚本
+
 docker pull mobufan/fan-reubah:latest
 
 ```bash
-docker pull mobufan/fan-reubah:v1.6.9
+docker pull mobufan/fan-reubah:v1.0.6
 ```
 
 ```bash
 docker pull ghcr.io/meimolihan/fan-reubah:latest
 ```
 ```bash
-docker pull ghcr.io/meimolihan/fan-reubah:v1.6.9
+docker pull ghcr.io/meimolihan/fan-reubah:v1.0.6
 ```
 
 ## 二进制安装
