@@ -1,25 +1,24 @@
-优化 安装卸载脚本
+自动构建发布 v1.0.7
 
-docker pull mobufan/2panel:latest
+docker pull mobufan/fan-reubah:latest
 
 ```bash
-docker pull mobufan/2panel:v1.0.9
+docker pull mobufan/fan-reubah:v1.0.7
 ```
 
 ```bash
-docker pull ghcr.io/meimolihan/2panel:latest
+docker pull ghcr.io/meimolihan/fan-reubah:latest
 ```
-
 ```bash
-docker pull ghcr.io/meimolihan/2panel:v1.0.9
+docker pull ghcr.io/meimolihan/fan-reubah:v1.0.7
 ```
 
 ## 二进制安装
 ```bash
-bash -c "$(curl -sSL https://raw.githubusercontent.com/meimolihan/2Panel/main/scripts/install.sh)" -p 8080 -d /var/lib/2panel
+bash -c "$(curl -sSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/install.sh)" -p 8081 -a /var/lib/fan-reubah
 ```
 
 ## 二进制卸载
 ```bash
-bash -c "$(curl -sSL https://raw.githubusercontent.com/meimolihan/2Panel/main/scripts/uninstall.sh)" -y --purge
+bash -c "$(curl -sSL https://raw.githubusercontent.com/meimolihan/fan-reubah/main/scripts/uninstall.sh)" -y --purge
 ```
