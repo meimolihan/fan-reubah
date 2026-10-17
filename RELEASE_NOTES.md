@@ -1,16 +1,16 @@
-自动构建发布 v1.0.7
+增加常用比例预设
 
 docker pull mobufan/fan-reubah:latest
 
 ```bash
-docker pull mobufan/fan-reubah:v1.0.7
+docker pull mobufan/fan-reubah:v1.0.9
 ```
 
 ```bash
 docker pull ghcr.io/meimolihan/fan-reubah:latest
 ```
 ```bash
-docker pull ghcr.io/meimolihan/fan-reubah:v1.0.7
+docker pull ghcr.io/meimolihan/fan-reubah:v1.0.9
 ```
 
 ## 二进制安装
