@@ -10,9 +10,23 @@
     <script src="/static/js/i18n.js" defer></script>
     <script src="/static/js/main.js" defer></script>
 </head>
-<body class="transition-colors duration-200" 
-    x-data="{ activeTab: 'image', processingMode: 'individual', svgPreset: '', lang: window.I18n.getLang(), darkMode: localStorage.getItem('darkMode') === 'true', t(key, params) { return window.I18n.tLang(this.lang, key, params); }, setLang() { window.I18n.setLang(this.lang); document.documentElement.lang = this.lang === 'zh' ? 'zh-CN' : 'en'; } }" 
+<body
+    x-data="{ activeTab: 'image', processingMode: 'individual', svgPreset: '', lang: window.I18n.getLang(), darkMode: localStorage.getItem('darkMode') === 'true', t(key, params) { return window.I18n.tLang(this.lang, key, params); }, setLang() { window.I18n.setLang(this.lang); document.documentElement.lang = this.lang === 'zh' ? 'zh-CN' : 'en'; }, toggleTheme() { const next = !this.darkMode; const apply = () => { this.darkMode = next; try { localStorage.setItem('darkMode', String(next)); } catch (e) {} }; const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; if (!document.startViewTransition || reduce) { apply(); return; } document.startViewTransition(() => { apply(); if (window.Alpine && typeof Alpine.nextTick === 'function') { return Alpine.nextTick(); } return new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); }); }); } }" 
     :class="{ 'dark bg-darkBg text-gray-100': darkMode, 'bg-[#FFFFFF] text-gray-900': !darkMode }">
+
+    <!-- 开屏动画：进入页面时品牌柔光开场，随后淡出揭示应用（参照 StudyBuddy 开屏风格） -->
+    <div id="splash" class="splash" aria-hidden="true">
+        <div class="splash-fog"></div>
+        <div class="splash-wrap">
+            <div class="splash-badge" aria-hidden="true">
+                <span class="splash-monogram">FR</span>
+            </div>
+            <p class="splash-brand">Fan-Reubah</p>
+            <p class="splash-tag">图片 · 文档 · SVG · 批量转换</p>
+            <span class="splash-ring" aria-hidden="true"></span>
+        </div>
+    </div>
+
     {{ template "nav" . }}
 
     <main class="min-h-screen py-6">
@@ -64,5 +78,6 @@
     <script src="/static/js/batchHandler.js"></script>
     <script src="/static/js/documentHandler.js"></script>
     <script src="/static/js/svgHandler.js"></script>
+    <script src="/static/js/splash.js"></script>
 </body>
 </html> 

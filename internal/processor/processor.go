@@ -12,11 +12,7 @@ import (
 	_ "image/png"
 	"io"
 	"math"
-	"os"
-	"path/filepath"
 
-	"github.com/MaestroError/go-libheif"
-	"github.com/chai2010/webp"
 	"github.com/disintegration/imaging"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/meimolihan/fan-reubah/internal/processor/background"
@@ -25,50 +21,11 @@ import (
 	"golang.org/x/image/bmp"
 )
 
-// DecodeHeic decodes HEIC/HEIF images
-func DecodeHeic(r io.Reader) (image.Image, error) {
-	// Create temporary file for the HEIC data
-	tmpDir := os.TempDir()
-	tmpHEIC := filepath.Join(tmpDir, "temp_input.heic")
-	defer os.Remove(tmpHEIC)
-
-	// Create temporary file
-	f, err := os.Create(tmpHEIC)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temporary HEIC file: %w", err)
-	}
-	defer f.Close()
-
-	// Copy the reader data to the temp file
-	if _, err := io.Copy(f, r); err != nil {
-		return nil, fmt.Errorf("failed to write HEIC data: %w", err)
-	}
-
-	// Create temporary file for JPEG output
-	tmpJPG := filepath.Join(tmpDir, "temp_output.jpg")
-	defer os.Remove(tmpJPG)
-
-	// Convert HEIC to JPEG
-	if err := libheif.HeifToJpeg(tmpHEIC, tmpJPG, 100); err != nil {
-		return nil, fmt.Errorf("failed to convert HEIC to JPEG: %w", err)
-	}
-
-	// Read the JPEG file
-	jpegData, err := os.ReadFile(tmpJPG)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read converted JPEG: %w", err)
-	}
-
-	// Decode the JPEG data
-	return jpeg.Decode(bytes.NewReader(jpegData))
-}
-
 func init() {
-	// Register HEIC format decoder
-	image.RegisterFormat("heic", "ftypheic", DecodeHeic, nil)
-	image.RegisterFormat("heif", "ftypheif", DecodeHeic, nil)
-	image.RegisterFormat("heic", "ftypmif1", DecodeHeic, nil) // For HEIF images from iOS
-	image.RegisterFormat("heic", "ftypmsf1", DecodeHeic, nil) // For HEIF images from iOS
+	// Register the HEIC/HEIF decoder when libheif is linked.
+	// The implementation lives in heif_cgo.go (!nolibheif build) or is a no-op
+	// stub in heif_stub.go (nolibheif build).
+	registerHeic()
 }
 
 // ProcessOptions defines the options for image processing
@@ -174,10 +131,7 @@ func (pi *ProcessedImage) Write(w io.Writer) error {
 		}
 		return encoder.Encode(w, pi.Image)
 	case "webp":
-		return webp.Encode(w, pi.Image, &webp.Options{
-			Lossless: pi.Quality == 100,
-			Quality:  float32(pi.Quality),
-		})
+		return encodeWebP(w, pi.Image, pi.Quality)
 	case "gif":
 		return gif.Encode(w, pi.Image, &gif.Options{
 			NumColors: (pi.Quality * 256) / 100,
@@ -232,45 +186,6 @@ func getQualityLevel(quality int) string {
 	default:
 		return "lossless"
 	}
-}
-
-func encodeHEIC(w io.Writer, img image.Image, quality int) error {
-	// Create temporary files for the conversion process
-	tmpDir := os.TempDir()
-	tmpPNG := filepath.Join(tmpDir, "temp.png")
-	tmpHEIC := filepath.Join(tmpDir, "temp.heic")
-
-	// Clean up temporary files when done
-	defer os.Remove(tmpPNG)
-	defer os.Remove(tmpHEIC)
-
-	// Save image as PNG first
-	pngFile, err := os.Create(tmpPNG)
-	if err != nil {
-		return fmt.Errorf("failed to create temporary PNG file: %w", err)
-	}
-	if err := png.Encode(pngFile, img); err != nil {
-		pngFile.Close()
-		return fmt.Errorf("failed to encode image to PNG: %w", err)
-	}
-	pngFile.Close()
-
-	// Convert PNG to HEIC
-	if err := libheif.ImageToHeif(tmpPNG, tmpHEIC); err != nil {
-		return fmt.Errorf("failed to convert to HEIC: %w", err)
-	}
-
-	// Read the HEIC file and write to the output
-	heicData, err := os.ReadFile(tmpHEIC)
-	if err != nil {
-		return fmt.Errorf("failed to read HEIC file: %w", err)
-	}
-
-	if _, err := w.Write(heicData); err != nil {
-		return fmt.Errorf("failed to write HEIC data: %w", err)
-	}
-
-	return nil
 }
 
 func convertToPDF(w io.Writer, img image.Image, quality int) error {

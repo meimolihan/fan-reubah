@@ -1,5 +1,5 @@
 {{ define "nav" }}
-<nav class="shadow-sm sticky top-0 z-50 transition-colors duration-200" :class="{ 'bg-darkSurface': darkMode, 'bg-white': !darkMode }">
+<nav class="shadow-sm sticky top-0 z-50" :class="{ 'bg-darkSurface': darkMode, 'bg-white': !darkMode }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex-shrink-0 flex items-center">
@@ -22,7 +22,7 @@
                         <path d="M684.56626087 541.38434783h114.86608696v-30.45286957h-114.86608696V450.02573913h122.34573913v-30.45286956h-158.14121739v219.04695652h162.94956522V608.16695652h-127.15408696v-66.78260869z m239.88313043-65.71408696c-9.61669565 0-18.16486957 1.60278261-26.1787826 5.87686956-7.47965217 3.73982609-14.95930435 9.61669565-20.83617392 17.09634783V479.94434783h-34.72695652v158.67547826h34.72695652v-95.63269566c1.06852174-12.82226087 5.3426087-22.43895652 12.82226087-29.38434782 6.41113043-5.87686957 13.89078261-9.08243478 22.43895652-9.08243478 24.04173913 0 35.79547826 12.82226087 35.79547826 39.00104347v94.56417392h34.72695653v-97.76973913c1.06852174-43.27513043-19.2333913-64.64556522-58.76869566-64.64556522z"/>
                     </svg>
                 </button>
-                <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" 
+                <button @click="toggleTheme()" title="切换明暗模式"
                         class="p-2 rounded-lg transition-colors"
                         :class="{ 
                             'text-gray-400 hover:text-gray-300': darkMode,

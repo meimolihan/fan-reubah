@@ -29,11 +29,15 @@ document.addEventListener("DOMContentLoaded", function () {
         // Drag and drop handlers
         elements.documentUploadArea.addEventListener("dragover", (e) => {
             e.preventDefault();
-            elements.documentUploadArea.classList.add("border-indigo-500");
+            if (!elements.documentUploadArea.classList.contains("border-indigo-500")) {
+                elements.documentUploadArea.classList.add("border-indigo-500");
+            }
         });
 
         elements.documentUploadArea.addEventListener("dragleave", (e) => {
             e.preventDefault();
+            // 仅当指针真正离开拖拽区（而非移入子元素）时才移除高亮，消除拖拽时边框闪烁
+            if (e.currentTarget.contains(e.relatedTarget)) return;
             elements.documentUploadArea.classList.remove("border-indigo-500");
         });
 

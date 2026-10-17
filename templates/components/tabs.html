@@ -1,5 +1,5 @@
 {{ define "tabs" }}
- <div class="border-b transition-colors duration-200" :class="{ 'border-gray-700 bg-darkSurface': darkMode, 'border-gray-200 bg-gray-50/50': !darkMode }">
+ <div class="border-b rounded-t-lg transition-colors duration-200" :class="{ 'border-gray-700 bg-darkSurface': darkMode, 'border-gray-200 bg-gray-50/50': !darkMode }">
       <nav class="flex -mb-px mx-auto" :aria-label="t('tabsLabel')">
         <!-- Image Processing -->
         <button @click="activeTab = 'image'" 

@@ -2,6 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 全局圆角基准：tailwind.config.js 中 rounded-lg = var(--radius)，
+   rounded-md = calc(var(--radius) - 2px)、rounded-sm = calc(var(--radius) - 4px)。
+   此前 --radius 未定义导致这些圆角类全部失效（卡片呈方形）。
+   定义后全站 rounded-* 统一生效；调大此值即可整体放大圆角。 */
+:root {
+  --radius: 1.25rem; /* 20px：lg=20px, md=18px, sm=16px，明显圆润且不显臃肿 */
+}
+
 [x-cloak] { display: none !important; }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
 .fade-enter, .fade-leave-to { opacity: 0; }
+
+/* 优化问题#3：sticky 顶部导航在页面滚动时持续重绘，提升为独立合成层以减少重绘开销（仅渲染优化，不改变任何视觉/布局） */
+nav { will-change: transform; }
+
+/* =========================================================
+   明暗模式切换 · 中心辐射羽化动画（View Transitions API）
+   点击导航栏明暗按钮时，新旧页面各截一张快照：旧快照静止垫底，
+   新主题快照以屏幕中心为圆心向外扩张揭示。边缘用径向渐变遮罩
+   留出 24% 宽的羽化过渡带——波纹前沿柔和弥散，与开屏柔光风格统一。
+   不支持该 API 或系统开启「减弱动态效果」时，由 JS 侧回退为即时切换。
+   参照 StudyBuddy internal/web/static/style.css 实现。
+   ========================================================= */
+@property --theme-r{
+  syntax:'<percentage>'; inherits:false; initial-value:0%;
+}
+::view-transition-old(root),
+::view-transition-new(root){ animation:none; mix-blend-mode:normal }
+::view-transition-old(root){ z-index:1 }
+::view-transition-new(root){
+  z-index:2; animation:theme-reveal 1.5s ease-out both;
+  mask-image:radial-gradient(circle at 50% 50%,
+    #000 var(--theme-r), transparent calc(var(--theme-r) + 24%));
+  -webkit-mask-image:radial-gradient(circle at 50% 50%,
+    #000 var(--theme-r), transparent calc(var(--theme-r) + 24%));
+}
+@keyframes theme-reveal{
+  from{ --theme-r:0% }
+  to{ --theme-r:170% }
+}
+
+/* =========================================================
+   开屏动画：进入页面时品牌柔光开场，随后淡出揭示应用。
+   全屏独占层（z-index 高于一切），尊重 prefers-reduced-motion。
+   ========================================================= */
+.splash{
+  position:fixed; inset:0; z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(120% 120% at 50% 30%, #1e293b 0%, #0f172a 55%, #020617 100%);
+  overflow:hidden;
+  animation:splash-failsafe 4s linear both;
+}
+.splash.is-leaving{ animation:none; opacity:0; transition:opacity .5s ease; pointer-events:none }
+@keyframes splash-failsafe{ 0%,80%{opacity:1} 100%{opacity:0; visibility:hidden} }
+
+/* 柔光雾幕：从中心向四周弥散褪去，与明暗切换的羽化过渡带同源 */
+.splash-fog{
+  position:absolute; inset:-20%;
+  background:radial-gradient(circle at 50% 50%,
+    rgba(99,102,241,.35) 0%, rgba(99,102,241,0) 45%);
+  filter:blur(8px);
+  animation:splash-fog 2.4s ease-out both;
+}
+@keyframes splash-fog{ from{opacity:.9; transform:scale(.6)} to{opacity:0; transform:scale(1.4)} }
+
+.splash-wrap{ position:relative; z-index:1; text-align:center; padding:0 24px; }
+
+.splash-badge{
+  width:84px; height:84px; margin:0 auto 22px;
+  border-radius:22px;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,#6366F1,#3B82F6);
+  box-shadow:0 12px 40px rgba(59,130,246,.45);
+  animation:splash-pop .7s cubic-bezier(.22,.9,.32,1) both;
+}
+.splash-monogram{
+  font-size:30px; font-weight:800; letter-spacing:.04em;
+  color:#fff; font-family:"Microsoft YaHei","PingFang SC","微软雅黑",sans-serif;
+}
+.splash-brand{
+  margin:0; font-size:30px; font-weight:800; letter-spacing:.02em;
+  color:#F8FAFC;
+  animation:splash-rise .8s .12s ease both;
+}
+.splash-tag{
+  margin:10px 0 0; font-size:14px; letter-spacing:.18em;
+  color:#94A3B8;
+  animation:splash-rise .8s .26s ease both;
+}
+.splash-ring{
+  display:block; margin:26px auto 0; width:30px; height:30px;
+  border-radius:50%;
+  border:3px solid rgba(148,163,184,.35);
+  border-top-color:#818CF8;
+  animation:splash-spin .8s linear infinite, splash-rise .8s .4s ease both;
+}
+@keyframes splash-pop{ from{opacity:0; transform:translateY(10px) scale(.9)} to{opacity:1; transform:none} }
+@keyframes splash-rise{ from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none} }
+@keyframes splash-spin{ to{transform:rotate(360deg)} }
+
+/* 「减弱动态效果」：关闭位移/旋转等动效，仅保留淡出兜底（splash-failsafe 仍生效，避免脚本失效卡屏） */
+@media (prefers-reduced-motion: reduce){
+  .splash-fog, .splash-badge, .splash-brand, .splash-tag, .splash-ring{ animation:none; }
+}

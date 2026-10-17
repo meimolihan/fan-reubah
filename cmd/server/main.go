@@ -91,6 +91,7 @@ func setupRouter() *mux.Router {
 	// Middleware for all routes
 	r.Use(loggingMiddleware)
 	r.Use(securityHeadersMiddleware)
+	r.Use(noCacheMiddleware)
 	r.Use(recoveryMiddleware)
 
 	// Serve static files with caching (embedded in the binary; falls back to
@@ -145,12 +146,17 @@ func recoveryMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// func cacheMiddleware(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		w.Header().Set("Cache-Control", "public, max-age=31536000")
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
+// noCacheMiddleware 禁止浏览器缓存静态资源与页面，确保本地开发时每次刷新都拉取
+// 最新版本的 CSS/JS/HTML，避免「改了代码却看不到效果」的浏览器缓存问题。
+// 对 POST 接口等动态响应同样生效（响应本就不应被缓存）。
+func noCacheMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		next.ServeHTTP(w, r)
+	})
+}
 
 func getPort() string {
 	if port := os.Getenv("PORT"); port != "" {

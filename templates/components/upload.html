@@ -3,15 +3,14 @@
     <div class="relative">
         <input id="imageInput" name="image" type="file" accept="image/*,.heic,.heif,.icns" required class="sr-only">        
         <label class="block">
-            <div id="uploadArea" 
-                 class="mt-1 flex justify-center px-6 pt-8 pb-8 border-2 border-dashed rounded-lg transition-all duration-200 group"
-                 :class="{ 
-                     'border-darkBorder bg-darkSurface text-darkTextPrimary hover:bg-darkSurface/90': darkMode,
-                     'border-gray-300 bg-gray-50 hover:bg-gray-50/50 text-gray-600': !darkMode 
+            <div id="uploadArea"
+                 class="mt-1 flex justify-center px-6 pt-8 pb-8 border-2 border-dashed rounded-lg transition-colors group"
+                 :class="{
+                     'border-darkBorder bg-darkSurface text-darkTextPrimary hover:bg-darkSurface/90 hover:border-darkAccent': darkMode,
+                     'border-gray-300 bg-gray-50 hover:bg-gray-50/50 text-gray-600 hover:border-indigo-500': !darkMode
                  }">
                 <div class="space-y-2 text-center">
-                    <svg class="mx-auto h-14 w-14 transition-colors"
-                         :class="{ 'text-gray-400 group-hover:text-darkAccent': darkMode, 'text-gray-400 group-hover:text-accent-light': !darkMode }"
+                    <svg class="mx-auto h-14 w-14 text-gray-400"
                          stroke="currentColor" fill="none" viewBox="0 0 48 48">
                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>

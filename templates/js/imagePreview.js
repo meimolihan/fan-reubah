@@ -52,11 +52,15 @@ function isIcnsFile(file) {
   function setupDragAndDrop() {
     elements.uploadArea.addEventListener("dragover", (e) => {
       e.preventDefault();
-      elements.uploadArea.classList.add("border-indigo-500");
+      if (!elements.uploadArea.classList.contains("border-indigo-500")) {
+        elements.uploadArea.classList.add("border-indigo-500");
+      }
     });
 
     elements.uploadArea.addEventListener("dragleave", (e) => {
       e.preventDefault();
+      // 仅当指针真正离开拖拽区（而非移入子元素）时才移除高亮，消除拖拽时边框闪烁
+      if (e.currentTarget.contains(e.relatedTarget)) return;
       elements.uploadArea.classList.remove("border-indigo-500");
     });
 
@@ -184,9 +188,6 @@ function isIcnsFile(file) {
     // Reset dimension input placeholders
     if (elements.widthInput) elements.widthInput.placeholder = I18n.t('widthPx');
     if (elements.heightInput) elements.heightInput.placeholder = I18n.t('heightPx');
-    
-    // Re-initialize event listeners
-    setupEventListeners();
   }
 
   initializeImagePreview();
