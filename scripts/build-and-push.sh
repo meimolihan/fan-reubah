@@ -8,6 +8,7 @@
 # Usage:
 #   TAG(必填) 形如 v1.0.0; --yes 免交互
 #     bash scripts/build-and-push.sh v1.0.0 --yes
+set -euo pipefail
 
 info() { echo -e "\033[32m>>> $*\033[0m"; }
 warn() { echo -e "\033[33m!!! $*\033[0m"; }

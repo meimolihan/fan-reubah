@@ -134,6 +134,16 @@
                 <p class="text-xs" :class="{ 'text-darkTextSecondary': darkMode, 'text-gray-500': !darkMode }" x-text="t('resizeHint')">
                     Leave dimensions empty to maintain original size
                 </p>
+
+                <!-- 常用比例预设：点击按所选宽高比填充分辨率（默认裁切到该比例） -->
+                <div x-data="{ selectedRatio: '', aspectPresets: ['1:1','1:2','2:1','9:18','9:21','9:32','10:16','16:10','18:9','21:9','32:9','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9'], applyRatio(r){ const wIn=document.getElementById('widthInput'); const hIn=document.getElementById('heightInput'); const mode=document.getElementById('resizeModeSelect'); const p=r.split(':'); const ratio=parseFloat(p[0])/parseFloat(p[1]); let w=parseInt(wIn.value,10); let h=parseInt(hIn.value,10); if(w>0){ h=Math.round(w/ratio); } else if(h>0){ w=Math.round(h*ratio); } else { if(ratio>=1){ w=1000; h=Math.round(1000/ratio); } else { h=1000; w=Math.round(1000*ratio); } } const clamp=v=>Math.max(1,Math.min(8192,v)); wIn.value=clamp(w); hIn.value=clamp(h); if(mode){ mode.value='fill'; } this.selectedRatio=r; } }">
+                    <p class="text-sm font-medium mb-2" :class="{ 'text-darkTextPrimary': darkMode, 'text-gray-700': !darkMode }"><span x-text="t('aspectPresets')">常用比例预设</span></p>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="r in aspectPresets" :key="r">
+                            <button type="button" @click="applyRatio(r)" :class="selectedRatio === r ? 'active' : ''" class="aspect-preset" x-text="r"></button>
+                        </template>
+                    </div>
+                </div>
             </div>
         </div>
 

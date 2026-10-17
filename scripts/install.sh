@@ -12,6 +12,8 @@
 #     bash scripts/install.sh -p 8081 -a /var/lib/fan-reubah -b ./bin/fan-reubah
 #     bash scripts/install.sh -y
 
+set -euo pipefail
+
 # ================== terminal colors ==================
 list_color_init() {
     export gl_hui=$'\033[38;5;59m'

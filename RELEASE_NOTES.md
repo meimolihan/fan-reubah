@@ -1,16 +1,16 @@
-添加开屏动画和明暗模式切换动画
+自动构建发布 v1.0.7
 
 docker pull mobufan/fan-reubah:latest
 
 ```bash
-docker pull mobufan/fan-reubah:v1.0.8
+docker pull mobufan/fan-reubah:v1.0.7
 ```
 
 ```bash
 docker pull ghcr.io/meimolihan/fan-reubah:latest
 ```
 ```bash
-docker pull ghcr.io/meimolihan/fan-reubah:v1.0.8
+docker pull ghcr.io/meimolihan/fan-reubah:v1.0.7
 ```
 
 ## 二进制安装
